@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% block title %}Inventory Management - MediFind{% endblock %}
+
+{% block content %}
+<div class="portal-layout">
+  <!-- Pharmacy Sidebar -->
+  <aside class="portal-sidebar">
+    <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+      <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Pharmacy Portal</div>
+      <h3 style="font-size: 1.1rem; color: var(--text-main); margin-top: 0.2rem;">{{ pharmacy.name }}</h3>
+    </div>
+
+    <ul class="portal-nav">
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.dashboard') }}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.inventory') }}" class="active"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.orders') }}"><i class="fa-solid fa-cart-shopping"></i> Orders</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.requests') }}"><i class="fa-solid fa-inbox"></i> Customer Requests</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.prescriptions') }}"><i class="fa-solid fa-file-prescription"></i> Rx Review</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.verification') }}"><i class="fa-solid fa-shield-halved"></i> Verification & License</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.profile') }}"><i class="fa-solid fa-store"></i> Store Profile</a></li>
+    </ul>
+  </aside>
+
+  <!-- Inventory Main Content -->
+  <main class="portal-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h1 style="font-size: 1.8rem; margin-bottom: 0.25rem;">Medicine Inventory Directory</h1>
+        <p style="color: var(--text-muted);">Every change immediately refreshes the "Last updated" timestamp visible to customers.</p>
+      </div>
+
+      <button id="show-add-modal-btn" class="btn btn-primary" onclick="document.getElementById('add-medicine-panel').style.display='block'; window.scrollTo({top: 0, behavior: 'smooth'});">
+        <i class="fa-solid fa-plus"></i> Add Medicine to Stock
+      </button>
+    </div>
+
+    <!-- Add Medicine Panel (Collapsible) -->
+    <div id="add-medicine-panel" class="card" style="display: none; border: 2px solid var(--primary); margin-bottom: 1.5rem; background: #fafcff;">
+      <div class="card-header" style="background: var(--primary-light);">
+        <h3 style="font-size: 1.15rem; color: var(--primary-dark);"><i class="fa-solid fa-plus-circle"></i> Add / Restock Medicine in Inventory</h3>
+        <button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById('add-medicine-panel').style.display='none';">&times; Close</button>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('pharmacy.inventory') }}">
+          <input type="hidden" name="action" value="add">
+          
+          <div class="form-group">
+            <label class="form-label" for="medicine_id">Select Catalog Medicine *</label>
+            <select name="medicine_id" id="medicine_id" class="form-select" required>
+              <option value="">-- Choose Medicine from Master Catalog --</option>
+              {% for med in all_medicines %}
+                <option value="{{ med.id }}">
+                  {{ med.name }} ({{ med.generic_name }}) - {{ med.strength }} [{{ med.dosage_form }}]{% if med.requires_prescription %} - (Rx Req){% endif %}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label" for="quantity">Available Quantity (Units) *</label>
+              <input type="number" name="quantity" id="quantity" class="form-control" value="25" min="0" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="price">Retail Price ($) *</label>
+              <input type="number" step="0.01" name="price" id="price" class="form-control" value="5.00" min="0" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="batch_number">Batch / Lot Number</label>
+              <input type="text" name="batch_number" id="batch_number" class="form-control" placeholder="e.g. B2026-X01">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="notes">Inventory Notes</label>
+            <input type="text" name="notes" id="notes" class="form-control" placeholder="Rack location, expiry details, etc.">
+          </div>
+
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-floppy-disk"></i> Save to Inventory
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Inventory Filter & Search -->
+    <div class="card" style="padding: 1rem 1.25rem;">
+      <form method="GET" action="{{ url_for('pharmacy.inventory') }}" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+        <div style="flex: 1; min-width: 200px;">
+          <input type="text" name="q" value="{{ query }}" placeholder="Search by medicine name, brand, or generic..." class="form-control">
+        </div>
+
+        <div>
+          <select name="status" class="form-select" style="width: auto;" onchange="this.form.submit()">
+            <option value="">All Stock Statuses</option>
+            <option value="AVAILABLE" {% if status_filter == 'AVAILABLE' %}selected{% endif %}>Available</option>
+            <option value="LOW_STOCK" {% if status_filter == 'LOW_STOCK' %}selected{% endif %}>Low Stock</option>
+            <option value="OUT_OF_STOCK" {% if status_filter == 'OUT_OF_STOCK' %}selected{% endif %}>Out of Stock</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+        {% if query or status_filter %}
+          <a href="{{ url_for('pharmacy.inventory') }}" class="btn btn-outline btn-sm">Clear</a>
+        {% endif %}
+      </form>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Medicine & Details</th>
+              <th>Status</th>
+              <th>Price ($)</th>
+              <th>Quantity</th>
+              <th>Last Updated</th>
+              <th style="text-align: right;">Quick Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in inventory_items %}
+              <tr>
+                <td>
+                  <strong>{{ item.medicine.name }}</strong>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    {{ item.medicine.generic_name }} &bull; {{ item.medicine.strength }} ({{ item.medicine.dosage_form }})
+                  </div>
+                  {% if item.batch_number %}
+                    <div style="font-size: 0.75rem; color: var(--text-subtle);">Batch: {{ item.batch_number }}</div>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="badge {{ item.status_badge_class }}">{{ item.stock_status.replace('_', ' ') }}</span>
+                </td>
+                <td>
+                  <!-- Inline Price Update -->
+                  <form method="POST" action="{{ url_for('pharmacy.inventory_quick_update') }}" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                    <input type="hidden" name="inventory_id" value="{{ item.id }}">
+                    <input type="hidden" name="quantity" value="{{ item.quantity }}">
+                    <input type="number" step="0.01" name="price" value="{{ item.price }}" style="width: 75px; padding: 0.25rem 0.4rem; font-size: 0.88rem;" class="form-control">
+                    <button type="submit" class="btn btn-sm btn-outline" title="Update Price"><i class="fa-solid fa-check"></i></button>
+                  </form>
+                </td>
+                <td>
+                  <!-- Inline Quantity Quick Update -->
+                  <form method="POST" action="{{ url_for('pharmacy.inventory_quick_update') }}" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                    <input type="hidden" name="inventory_id" value="{{ item.id }}">
+                    <input type="hidden" name="price" value="{{ item.price }}">
+                    <input type="number" name="quantity" value="{{ item.quantity }}" min="0" style="width: 70px; padding: 0.25rem 0.4rem; font-size: 0.88rem;" class="form-control">
+                    <button type="submit" class="btn btn-sm btn-outline" title="Update Quantity"><i class="fa-solid fa-check"></i></button>
+                  </form>
+                </td>
+                <td>
+                  <!-- MANDATORY EXPLICIT TIMESTAMP -->
+                  <div class="timestamp-badge">
+                    <i class="fa-regular fa-clock"></i> {{ humanize_time_ago(item.last_updated_at) }}
+                  </div>
+                </td>
+                <td style="text-align: right;">
+                  <form method="POST" action="{{ url_for('pharmacy.inventory') }}" onsubmit="return confirm('Remove {{ item.medicine.name }} from your store inventory?');" style="display: inline;">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="inventory_id" value="{{ item.id }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove from Inventory">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                  No inventory items match your search. Click "Add Medicine to Stock" to add medicines.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

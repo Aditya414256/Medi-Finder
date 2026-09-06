@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}Pharmacy Registration - MediFind{% endblock %}
+
+{% block content %}
+<div style="max-width: 680px; margin: 2rem auto;">
+  <div class="card" style="box-shadow: var(--shadow-lg);">
+    <div class="card-header" style="text-align: center; display: block; padding: 2rem 1.5rem 1rem; border-bottom: none; background: #fff;">
+      <div class="brand-icon" style="margin: 0 auto 1rem; width: 48px; height: 48px; font-size: 1.4rem; background: linear-gradient(135deg, var(--accent) 0%, #10b981 100%);">
+        <i class="fa-solid fa-store"></i>
+      </div>
+      <h2 style="font-size: 1.6rem; margin-bottom: 0.35rem;">Register Your Pharmacy</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Join the verified MediFind network to manage inventory and serve local customers.</p>
+    </div>
+
+    <div class="card-body" style="padding: 1rem 2rem 2rem;">
+      <form method="POST" action="{{ url_for('auth.register_pharmacy') }}">
+        <h4 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+          <i class="fa-solid fa-user"></i> Pharmacy Owner Account
+        </h4>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label" for="full_name">Owner Full Name *</label>
+            <input type="text" name="full_name" id="full_name" class="form-control" placeholder="Dr. Jane Smith" value="{{ form_data.get('full_name', '') }}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="email">Account Email *</label>
+            <input type="email" name="email" id="email" class="form-control" placeholder="owner@pharmacy.com" value="{{ form_data.get('email', '') }}" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label" for="password">Password *</label>
+            <input type="password" name="password" id="password" class="form-control" placeholder="At least 6 characters" required minlength="6">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="confirm_password">Confirm Password *</label>
+            <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="Repeat password" required minlength="6">
+          </div>
+        </div>
+
+        <h4 style="font-size: 1.1rem; margin: 1.5rem 0 1rem; color: var(--accent); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+          <i class="fa-solid fa-prescription-bottle-medical"></i> Pharmacy & Licensure Details
+        </h4>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label" for="pharmacy_name">Pharmacy Store Name *</label>
+            <input type="text" name="pharmacy_name" id="pharmacy_name" class="form-control" placeholder="Downtown Care Pharmacy" value="{{ form_data.get('pharmacy_name', '') }}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="license_number">Drug License / Registration No. *</label>
+            <input type="text" name="license_number" id="license_number" class="form-control" placeholder="DL-2024-XXXX-XXXX" value="{{ form_data.get('license_number', '') }}" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="address">Street Address *</label>
+          <input type="text" name="address" id="address" class="form-control" placeholder="123 Health Ave, Suite 100" value="{{ form_data.get('address', '') }}" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label" for="city">City *</label>
+            <input type="text" name="city" id="city" class="form-control" placeholder="City" value="{{ form_data.get('city', '') }}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="state">State *</label>
+            <input type="text" name="state" id="state" class="form-control" placeholder="State" value="{{ form_data.get('state', '') }}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="pincode">Pincode / Postal *</label>
+            <input type="text" name="pincode" id="pincode" class="form-control" placeholder="100001" value="{{ form_data.get('pincode', '') }}" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label" for="latitude">Latitude (approx)</label>
+            <input type="number" step="any" name="latitude" id="latitude" class="form-control" placeholder="28.6139" value="{{ form_data.get('latitude', '28.6139') }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="longitude">Longitude (approx)</label>
+            <input type="number" step="any" name="longitude" id="longitude" class="form-control" placeholder="77.2090" value="{{ form_data.get('longitude', '77.2090') }}">
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 2rem; margin: 1rem 0 1.5rem;">
+          <div class="form-check">
+            <input type="checkbox" name="supports_pickup" id="supports_pickup" checked style="cursor: pointer;">
+            <label for="supports_pickup" style="font-size: 0.9rem; font-weight: 600; cursor: pointer;">Store Pickup Supported</label>
+          </div>
+          <div class="form-check">
+            <input type="checkbox" name="supports_delivery" id="supports_delivery" style="cursor: pointer;">
+            <label for="supports_delivery" style="font-size: 0.9rem; font-weight: 600; cursor: pointer;">Home Delivery Supported</label>
+          </div>
+        </div>
+
+        <div style="background: var(--bg-subtle); padding: 1rem; border-radius: var(--radius-md); font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+          <i class="fa-solid fa-circle-info text-primary"></i> <strong>Note on Verification:</strong> After registration, you will be prompted to upload state drug license certificates. Your pharmacy will be listed as <em>Verified</em> once reviewed by our admin team.
+        </div>
+
+        <button type="submit" class="btn btn-accent btn-lg" style="width: 100%;">
+          <i class="fa-solid fa-store"></i> Register & Proceed to Verification
+        </button>
+      </form>
+    </div>
+
+    <div class="card-footer" style="text-align: center; font-size: 0.9rem; padding: 1.25rem;">
+      Already registered? <a href="{{ url_for('auth.login') }}" style="font-weight: 600;">Sign In Here</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

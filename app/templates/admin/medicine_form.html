@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Edit Medicine' if medicine else 'Add New Medicine' }} - MediFind Admin{% endblock %}
+
+{% block content %}
+<div class="portal-layout">
+  <!-- Admin Sidebar -->
+  <aside class="portal-sidebar">
+    <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+      <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Admin Console</div>
+      <h3 style="font-size: 1.1rem; color: var(--text-main); margin-top: 0.2rem;">MediFind Platform</h3>
+    </div>
+
+    <ul class="portal-nav">
+      <li class="portal-nav-item"><a href="{{ url_for('admin.dashboard') }}"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.pharmacies') }}"><i class="fa-solid fa-store"></i> Pharmacies</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.medicines') }}" class="active"><i class="fa-solid fa-pills"></i> Medicine Catalog</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.categories') }}"><i class="fa-solid fa-folder-tree"></i> Categories</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.users') }}"><i class="fa-solid fa-users"></i> Users & Roles</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.orders') }}"><i class="fa-solid fa-cart-flatbed"></i> Global Orders</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.audit_logs') }}"><i class="fa-solid fa-shield-halved"></i> Audit Trail</a></li>
+    </ul>
+  </aside>
+
+  <!-- Form Content -->
+  <main class="portal-content">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <div style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.2rem;">
+          <a href="{{ url_for('admin.medicines') }}">&larr; Back to medicine catalog</a>
+        </div>
+        <h1 style="font-size: 1.8rem;">{{ 'Edit Medicine: ' ~ medicine.name if medicine else 'Add New Catalog Medicine' }}</h1>
+      </div>
+    </div>
+
+    <div class="card" style="box-shadow: var(--shadow-sm);">
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('admin.edit_medicine', medicine_id=medicine.id) if medicine else url_for('admin.create_medicine') }}">
+          <div style="display: grid; grid-template-columns: 1.5fr 1.5fr 1fr; gap: 1.25rem;">
+            <div class="form-group">
+              <label class="form-label" for="name">Medicine Full Name *</label>
+              <input type="text" name="name" id="name" class="form-control" placeholder="e.g. Paracetamol 500mg" value="{{ medicine.name if medicine else '' }}" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="generic_name">Generic / Chemical Name *</label>
+              <input type="text" name="generic_name" id="generic_name" class="form-control" placeholder="e.g. Acetaminophen" value="{{ medicine.generic_name if medicine else '' }}" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="brand_name">Brand Names</label>
+              <input type="text" name="brand_name" id="brand_name" class="form-control" placeholder="e.g. Crocin, Calpol" value="{{ medicine.brand_name if medicine else '' }}">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem;">
+            <div class="form-group">
+              <label class="form-label" for="strength">Strength *</label>
+              <input type="text" name="strength" id="strength" class="form-control" placeholder="e.g. 500mg, 10mg/5ml" value="{{ medicine.strength if medicine else '' }}" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="dosage_form">Dosage Form *</label>
+              <select name="dosage_form" id="dosage_form" class="form-select" required>
+                {% for form in ['Tablet', 'Capsule', 'Syrup', 'Injection', 'Inhaler', 'Drops', 'Ointment', 'Powder'] %}
+                  <option value="{{ form }}" {% if medicine and medicine.dosage_form == form %}selected{% endif %}>{{ form }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="category_id">Category</label>
+              <select name="category_id" id="category_id" class="form-select">
+                <option value="">-- None --</option>
+                {% for cat in categories %}
+                  <option value="{{ cat.id }}" {% if medicine and medicine.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-check" style="background: var(--bg-subtle); padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+            <input type="checkbox" name="requires_prescription" id="requires_prescription" {% if medicine and medicine.requires_prescription %}checked{% endif %} style="cursor: pointer;">
+            <label for="requires_prescription" style="font-weight: 700; cursor: pointer; color: var(--danger);">
+              <i class="fa-solid fa-prescription"></i> Requires Valid Doctor's Prescription (Schedule H/Rx)
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="description">Medicine Clinical Description</label>
+            <textarea name="description" id="description" class="form-control" placeholder="Therapeutic indications, mechanism of action...">{{ medicine.description if medicine else '' }}</textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+            <div class="form-group">
+              <label class="form-label" for="manufacturer">Manufacturer / Pharma House</label>
+              <input type="text" name="manufacturer" id="manufacturer" class="form-control" placeholder="e.g. GSK, Cipla" value="{{ medicine.manufacturer if medicine else '' }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="usage_instructions">Standard Usage Instructions</label>
+              <input type="text" name="usage_instructions" id="usage_instructions" class="form-control" placeholder="e.g. Take post meals with water" value="{{ medicine.usage_instructions if medicine else '' }}">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="side_effects_warning">Side Effects & Cautionary Warnings</label>
+            <textarea name="side_effects_warning" id="side_effects_warning" class="form-control" placeholder="Contraindications, cautionary warnings...">{{ medicine.side_effects_warning if medicine else '' }}</textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg">
+            <i class="fa-solid fa-floppy-disk"></i> {{ 'Save Changes' if medicine else 'Add to Catalog' }}
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

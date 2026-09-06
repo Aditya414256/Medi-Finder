@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}My Medicine Requests - MediFind{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+  <div>
+    <h1 style="font-size: 2rem;">My Medicine Inquiries & Requests</h1>
+    <p style="color: var(--text-muted);">Track responses and stock alerts from local pharmacies.</p>
+  </div>
+  <a href="{{ url_for('customer.create_request') }}" class="btn btn-primary">
+    <i class="fa-solid fa-plus"></i> New Request
+  </a>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Request ID</th>
+          <th>Medicine</th>
+          <th>Pharmacy</th>
+          <th>Quantity</th>
+          <th>Status</th>
+          <th>Pharmacy Response</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in requests %}
+          <tr>
+            <td><strong>#REQ-{{ req.id }}</strong></td>
+            <td>
+              <strong>{{ req.medicine.name }}</strong>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">{{ req.medicine.strength }}</div>
+            </td>
+            <td>{{ req.pharmacy.name }}</td>
+            <td>{{ req.quantity }}</td>
+            <td>
+              <span class="badge {{ req.status_badge_class }}">{{ req.status }}</span>
+            </td>
+            <td>
+              {% if req.pharmacy_response %}
+                <span style="color: var(--text-main); font-weight: 500;">{{ req.pharmacy_response }}</span>
+              {% else %}
+                <span style="color: var(--text-subtle); font-style: italic;">Awaiting store review...</span>
+              {% endif %}
+            </td>
+            <td style="font-size: 0.85rem; color: var(--text-muted);">
+              {{ req.created_at.strftime('%b %d, %Y') }}
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+              You haven't submitted any medicine availability requests yet.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

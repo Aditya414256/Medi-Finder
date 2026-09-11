@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Master Medicine Catalog - MediFind Admin{% endblock %}
+
+{% block content %}
+<div class="portal-layout">
+  <!-- Admin Sidebar -->
+  <aside class="portal-sidebar">
+    <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+      <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Admin Console</div>
+      <h3 style="font-size: 1.1rem; color: var(--text-main); margin-top: 0.2rem;">MediFind Platform</h3>
+    </div>
+
+    <ul class="portal-nav">
+      <li class="portal-nav-item"><a href="{{ url_for('admin.dashboard') }}"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.pharmacies') }}"><i class="fa-solid fa-store"></i> Pharmacies</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.medicines') }}" class="active"><i class="fa-solid fa-pills"></i> Medicine Catalog</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.categories') }}"><i class="fa-solid fa-folder-tree"></i> Categories</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.users') }}"><i class="fa-solid fa-users"></i> Users & Roles</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.orders') }}"><i class="fa-solid fa-cart-flatbed"></i> Global Orders</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.audit_logs') }}"><i class="fa-solid fa-shield-halved"></i> Audit Trail</a></li>
+    </ul>
+  </aside>
+
+  <!-- Medicines Content -->
+  <main class="portal-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h1 style="font-size: 1.8rem; margin-bottom: 0.25rem;">Master Medicine Catalog</h1>
+        <p style="color: var(--text-muted);">Manage standard medicine definitions, generic names, and prescription requirements.</p>
+      </div>
+
+      <a href="{{ url_for('admin.create_medicine') }}" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i> Add New Medicine
+      </a>
+    </div>
+
+    <!-- Search & Category Filter -->
+    <div class="card" style="padding: 1rem 1.25rem;">
+      <form method="GET" action="{{ url_for('admin.medicines') }}" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+        <div style="flex: 1; min-width: 220px;">
+          <input type="text" name="q" value="{{ query }}" placeholder="Search medicine, generic, or brand..." class="form-control">
+        </div>
+
+        <div>
+          <select name="category_id" class="form-select" style="width: auto;" onchange="this.form.submit()">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+              <option value="{{ cat.id }}" {% if selected_category == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+        {% if query or selected_category %}
+          <a href="{{ url_for('admin.medicines') }}" class="btn btn-outline btn-sm">Clear</a>
+        {% endif %}
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Medicine Name</th>
+              <th>Generic Name</th>
+              <th>Dosage Form</th>
+              <th>Strength</th>
+              <th>Prescription</th>
+              <th>Category</th>
+              <th style="text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for med in medicines %}
+              <tr>
+                <td>
+                  <strong>{{ med.name }}</strong>
+                  {% if med.brand_name %}
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Brand: {{ med.brand_name }}</div>
+                  {% endif %}
+                </td>
+                <td>{{ med.generic_name }}</td>
+                <td><span class="badge badge-secondary">{{ med.dosage_form }}</span></td>
+                <td><strong>{{ med.strength }}</strong></td>
+                <td>
+                  {% if med.requires_prescription %}
+                    <span class="badge badge-warning"><i class="fa-solid fa-prescription"></i> Rx Required</span>
+                  {% else %}
+                    <span class="badge badge-success">OTC</span>
+                  {% endif %}
+                </td>
+                <td>{{ med.category.name if med.category else 'General' }}</td>
+                <td style="text-align: right;">
+                  <a href="{{ url_for('admin.edit_medicine', medicine_id=med.id) }}" class="btn btn-sm btn-outline">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                  </a>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                  No medicines found in catalog.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

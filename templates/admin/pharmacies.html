@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}Manage Pharmacies - MediFind Admin{% endblock %}
+
+{% block content %}
+<div class="portal-layout">
+  <!-- Admin Sidebar -->
+  <aside class="portal-sidebar">
+    <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+      <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Admin Console</div>
+      <h3 style="font-size: 1.1rem; color: var(--text-main); margin-top: 0.2rem;">MediFind Platform</h3>
+    </div>
+
+    <ul class="portal-nav">
+      <li class="portal-nav-item"><a href="{{ url_for('admin.dashboard') }}"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.pharmacies') }}" class="active"><i class="fa-solid fa-store"></i> Pharmacies</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.medicines') }}"><i class="fa-solid fa-pills"></i> Medicine Catalog</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.categories') }}"><i class="fa-solid fa-folder-tree"></i> Categories</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.users') }}"><i class="fa-solid fa-users"></i> Users & Roles</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.orders') }}"><i class="fa-solid fa-cart-flatbed"></i> Global Orders</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.audit_logs') }}"><i class="fa-solid fa-shield-halved"></i> Audit Trail</a></li>
+    </ul>
+  </aside>
+
+  <!-- Pharmacies Content -->
+  <main class="portal-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h1 style="font-size: 1.8rem; margin-bottom: 0.25rem;">Pharmacy Licensure & Partner Network</h1>
+        <p style="color: var(--text-muted);">Audit registered pharmacies, review official state licenses, and manage store access.</p>
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="card" style="padding: 0.75rem 1rem;">
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <a href="{{ url_for('admin.pharmacies') }}" class="btn btn-sm {% if not current_status %}btn-primary{% else %}btn-outline{% endif %}">All Pharmacies</a>
+        <a href="{{ url_for('admin.pharmacies', status='PENDING') }}" class="btn btn-sm {% if current_status == 'PENDING' %}btn-primary{% else %}btn-outline{% endif %}">Pending Review</a>
+        <a href="{{ url_for('admin.pharmacies', status='APPROVED') }}" class="btn btn-sm {% if current_status == 'APPROVED' %}btn-primary{% else %}btn-outline{% endif %}">Verified (Approved)</a>
+        <a href="{{ url_for('admin.pharmacies', status='REJECTED') }}" class="btn btn-sm {% if current_status == 'REJECTED' %}btn-primary{% else %}btn-outline{% endif %}">Rejected</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Store Details</th>
+              <th>Owner Account</th>
+              <th>License Number</th>
+              <th>Location</th>
+              <th>Verification</th>
+              <th>Status</th>
+              <th style="text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in pharmacies %}
+              <tr>
+                <td>
+                  <strong>{{ p.name }}</strong>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">{{ p.phone }} &bull; {{ p.email }}</div>
+                </td>
+                <td>
+                  {{ p.owner.full_name }}
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">{{ p.owner.email }}</div>
+                </td>
+                <td><code>{{ p.license_number }}</code></td>
+                <td>{{ p.city }}, {{ p.state }}</td>
+                <td>
+                  {% if p.is_verified %}
+                    <span class="badge badge-success"><i class="fa-solid fa-check"></i> Approved</span>
+                  {% elif p.verification_status == 'REJECTED' %}
+                    <span class="badge badge-danger"><i class="fa-solid fa-xmark"></i> Rejected</span>
+                  {% else %}
+                    <span class="badge badge-warning"><i class="fa-solid fa-clock"></i> Pending</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if p.is_active %}
+                    <span class="badge badge-primary">Active</span>
+                  {% else %}
+                    <span class="badge badge-danger">Suspended</span>
+                  {% endif %}
+                </td>
+                <td style="text-align: right; white-space: nowrap;">
+                  <a href="{{ url_for('admin.verify_pharmacy', pharmacy_id=p.id) }}" class="btn btn-sm btn-outline" title="Review Licensure">
+                    <i class="fa-solid fa-file-shield"></i> Review
+                  </a>
+
+                  <form method="POST" action="{{ url_for('admin.toggle_pharmacy_status', pharmacy_id=p.id) }}" style="display: inline;" onsubmit="return confirm('Change active status for {{ p.name }}?');">
+                    <button type="submit" class="btn btn-sm {% if p.is_active %}btn-outline-danger{% else %}btn-outline{% endif %}" title="{{ 'Suspend' if p.is_active else 'Activate' }}">
+                      <i class="fa-solid {% if p.is_active %}fa-ban{% else %}fa-check{% endif %}"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                  No pharmacies found matching this filter.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

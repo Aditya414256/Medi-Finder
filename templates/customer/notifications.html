@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Notifications - MediFind{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 style="font-size: 2rem;">Notification Center</h1>
+    <p style="color: var(--text-muted);">Real-time status updates on orders, prescriptions, and pharmacy responses.</p>
+  </div>
+
+  {% if notifications %}
+    <form method="POST" action="{{ url_for('customer.mark_all_notifications_read') }}">
+      <button type="submit" class="btn btn-outline btn-sm">
+        <i class="fa-solid fa-check-double"></i> Mark All as Read
+      </button>
+    </form>
+  {% endif %}
+</div>
+
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+  <div style="display: flex; flex-direction: column;">
+    {% for notif in notifications %}
+      <div style="padding: 1.25rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 1rem; align-items: flex-start; {% if not notif.is_read %}background: #f0f9ff;{% endif %}">
+        <div style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; background: {% if notif.type == 'ORDER' %}var(--primary-light); color: var(--primary);{% elif notif.type == 'PRESCRIPTION' %}var(--accent-light); color: var(--accent);{% elif notif.type == 'VERIFICATION' %}var(--warning-light); color: var(--warning);{% else %}var(--bg-subtle); color: var(--text-muted);{% endif %}">
+          <i class="fa-solid {% if notif.type == 'ORDER' %}fa-box{% elif notif.type == 'PRESCRIPTION' %}fa-file-prescription{% elif notif.type == 'VERIFICATION' %}fa-shield-halved{% else %}fa-bell{% endif %}"></i>
+        </div>
+
+        <div style="flex: 1;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+            <strong style="font-size: 1rem; color: var(--text-main);">{{ notif.title }}</strong>
+            <span style="font-size: 0.78rem; color: var(--text-muted);">{{ notif.created_at.strftime('%b %d, %I:%M %p') }}</span>
+          </div>
+
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; line-height: 1.4;">
+            {{ notif.message }}
+          </p>
+
+          {% if notif.link_url %}
+            <a href="{{ notif.link_url }}" class="btn btn-sm btn-outline" style="display: inline-flex; font-size: 0.8rem; padding: 0.25rem 0.65rem;">
+              View Details &rarr;
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    {% else %}
+      <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem; opacity: 0.5;"><i class="fa-regular fa-bell-slash"></i></div>
+        You have no notifications at this time.
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

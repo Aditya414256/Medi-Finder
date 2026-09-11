@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Dashboard - MediFind</title>
+  <meta name="description" content="View your active medicine orders, track delivery status, upload prescriptions, and view stock requests.">
+
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <link rel="stylesheet" href="homepage/style.css">
+  <link rel="stylesheet" href="static/css/medifind-theme.css">
+</head>
+<body style="background:var(--bg-main); min-height:100vh; display:flex; flex-direction:column;">
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <a href="index.html" class="brand-logo">
+        <div class="brand-icon"><i class="fa-solid fa-staff-snake"></i></div>
+        <span>MediFind</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link">Home</a>
+      </nav>
+
+      <div class="nav-actions">
+        <!-- Cart Button -->
+        <a href="javascript:void(0)" class="btn btn-outline btn-sm" data-action="open-cart" title="View Cart">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span>Cart</span>
+          <span class="cart-badge-count" style="display:none;">0</span>
+        </a>
+
+        <!-- Dynamic Auth Slot -->
+        <div data-auth-slot style="display:inline-flex; align-items:center; gap:0.5rem;"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Dashboard Container -->
+  <main class="container dashboard-grid">
+    
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+      <div style="text-align:center; padding-bottom:1.5rem; border-bottom:1px solid var(--border-color); margin-bottom:1.25rem;">
+        <img id="user-avatar" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120" alt="Avatar" style="width:72px; height:72px; border-radius:50%; object-fit:cover; margin-bottom:0.75rem; border:3px solid var(--primary-light);">
+        <h3 id="user-name" style="font-size:1.15rem; margin-bottom:0.2rem;">John Doe</h3>
+        <span class="badge badge-info"><i class="fa-solid fa-user"></i> Patient Account</span>
+      </div>
+
+      <nav>
+        <a href="javascript:void(0)" class="dashboard-nav-item active" onclick="switchCustomerTab('orders')">
+          <i class="fa-solid fa-box-open"></i> My Orders
+        </a>
+        <a href="javascript:void(0)" class="dashboard-nav-item" onclick="switchCustomerTab('prescriptions')">
+          <i class="fa-solid fa-file-prescription"></i> Prescriptions
+        </a>
+        <a href="javascript:void(0)" class="dashboard-nav-item" onclick="switchCustomerTab('requests')">
+          <i class="fa-solid fa-bullhorn"></i> Stock Requests
+        </a>
+        <a href="search.html" class="dashboard-nav-item">
+          <i class="fa-solid fa-magnifying-glass"></i> Find Medicines
+        </a>
+      </nav>
+
+      <div style="margin-top:2rem; padding-top:1rem; border-top:1px solid var(--border-color);">
+        <button class="btn btn-outline btn-sm" style="width:100%;" onclick="MediAuth.logout()">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <section>
+      
+      <!-- Orders Tab -->
+      <div id="tab-orders">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <div>
+            <h2 style="font-size:1.6rem; margin-bottom:0.25rem;">My Medicine Orders</h2>
+            <p style="color:var(--text-muted); font-size:0.9rem; margin:0;">Track live processing and fulfillment of your prescriptions.</p>
+          </div>
+          <a href="search.html" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-cart-plus"></i> New Order
+          </a>
+        </div>
+
+        <div id="customer-orders-container">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Prescriptions Tab -->
+      <div id="tab-prescriptions" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <div>
+            <h2 style="font-size:1.6rem; margin-bottom:0.25rem;">Prescription Manager</h2>
+            <p style="color:var(--text-muted); font-size:0.9rem; margin:0;">Upload doctor prescriptions for instant verification by licensed pharmacies.</p>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" onclick="alert('Upload simulated! Choose a file from your device.')">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Upload New Rx
+          </button>
+        </div>
+
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Document Name</th>
+                <th>Doctor / Clinic</th>
+                <th>Upload Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Dr_Smith_Amoxil_Rx.pdf</strong></td>
+                <td>City Medical Center</td>
+                <td>2026-09-11</td>
+                <td><span class="badge badge-success"><i class="fa-solid fa-check"></i> Verified</span></td>
+                <td><button class="btn btn-outline btn-sm" style="padding:0.2rem 0.6rem; font-size:0.75rem;" onclick="MediUI.showToast('Prescription validated with Apollo Pharmacy', 'success')">View</button></td>
+              </tr>
+              <tr>
+                <td><strong>Lipitor_Glycomet_Rx.pdf</strong></td>
+                <td>Apex Cardiology Clinic</td>
+                <td>2026-09-10</td>
+                <td><span class="badge badge-success"><i class="fa-solid fa-check"></i> Verified</span></td>
+                <td><button class="btn btn-outline btn-sm" style="padding:0.2rem 0.6rem; font-size:0.75rem;" onclick="MediUI.showToast('Prescription archived', 'info')">View</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Requests Tab -->
+      <div id="tab-requests" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <div>
+            <h2 style="font-size:1.6rem; margin-bottom:0.25rem;">My Medicine Stock Requests</h2>
+            <p style="color:var(--text-muted); font-size:0.9rem; margin:0;">Track broadcasts sent to nearby pharmacies for out-of-stock medications.</p>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" onclick="MediUI.openModal('request-modal')">
+            <i class="fa-solid fa-bullhorn"></i> New Request
+          </button>
+        </div>
+
+        <div id="customer-requests-container">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="static/js/medifind-engine.js"></script>
+  <script>
+    function switchCustomerTab(tab) {
+      document.getElementById('tab-orders').style.display = tab === 'orders' ? 'block' : 'none';
+      document.getElementById('tab-prescriptions').style.display = tab === 'prescriptions' ? 'block' : 'none';
+      document.getElementById('tab-requests').style.display = tab === 'requests' ? 'block' : 'none';
+
+      document.querySelectorAll('.dashboard-nav-item').forEach(el => el.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+    }
+
+    function renderCustomerDashboard() {
+      const user = MediAuth.getCurrentUser();
+      if (!user) {
+        MediAuth.loginAs('customer'); // Auto switch to demo customer for immediate preview
+      }
+      const activeUser = MediAuth.getCurrentUser();
+      if (activeUser) {
+        document.getElementById('user-name').textContent = activeUser.name;
+        if (activeUser.avatar) document.getElementById('user-avatar').src = activeUser.avatar;
+      }
+
+      renderOrders();
+      renderRequests();
+    }
+
+    function renderOrders() {
+      const container = document.getElementById('customer-orders-container');
+      const orders = MediStore.getOrders();
+
+      if (orders.length === 0) {
+        container.innerHTML = `
+          <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:3rem 1.5rem; text-align:center;">
+            <h4>No active orders yet</h4>
+            <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1rem;">Search medicines and order from verified pharmacies near you.</p>
+            <a href="search.html" class="btn btn-primary btn-sm">Find Medicines</a>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = orders.map(ord => {
+        const step = ord.statusStep || 1;
+        const isCompleted = ord.status === 'DELIVERED';
+
+        return `
+          <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:1.5rem; margin-bottom:1.5rem; box-shadow:var(--shadow-sm);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+              <div>
+                <span style="font-size:1.15rem; font-weight:800; color:var(--text-main);">${ord.id}</span>
+                <span style="font-size:0.85rem; color:var(--text-muted); margin-left:0.5rem;">Placed on ${ord.createdAt}</span>
+                <div style="font-size:0.85rem; color:var(--primary); font-weight:600; margin-top:0.2rem;">
+                  <i class="fa-solid fa-shop"></i> ${ord.pharmacyName} • <i class="fa-solid fa-truck"></i> ${ord.type}
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <span style="font-size:1.3rem; font-weight:800; color:var(--primary);">₹${ord.total.toFixed(2)}</span>
+                <span class="badge badge-${ord.status === 'DELIVERED' ? 'success' : 'info'}" style="display:block; margin-top:0.25rem;">
+                  ${ord.status.replace(/_/g, ' ')}
+                </span>
+              </div>
+            </div>
+
+            <!-- Order Stepper -->
+            <div class="order-stepper">
+              <div class="step-node ${step >= 1 ? (step > 1 ? 'completed' : 'active') : ''}">
+                <div class="step-circle"><i class="fa-solid fa-receipt"></i></div>
+                <span class="step-label">Placed</span>
+              </div>
+              <div class="step-node ${step >= 2 ? (step > 2 ? 'completed' : 'active') : ''}">
+                <div class="step-circle"><i class="fa-solid fa-file-circle-check"></i></div>
+                <span class="step-label">Verified</span>
+              </div>
+              <div class="step-node ${step >= 3 ? (step > 3 ? 'completed' : 'active') : ''}">
+                <div class="step-circle"><i class="fa-solid fa-box"></i></div>
+                <span class="step-label">Packed</span>
+              </div>
+              <div class="step-node ${step >= 4 ? (step > 4 ? 'completed' : 'active') : ''}">
+                <div class="step-circle"><i class="fa-solid fa-motorcycle"></i></div>
+                <span class="step-label">Out for Delivery</span>
+              </div>
+              <div class="step-node ${step >= 5 ? 'completed' : ''}">
+                <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+                <span class="step-label">Delivered</span>
+              </div>
+            </div>
+
+            <!-- Items summary -->
+            <div style="background:var(--bg-subtle); padding:0.85rem; border-radius:var(--radius-md); font-size:0.85rem;">
+              <strong>Items Ordered:</strong>
+              ${ord.items.map(item => `<div style="display:flex; justify-content:space-between; margin-top:0.25rem;"><span>${item.qty}x ${item.name}</span><span>₹${(item.price * item.qty).toFixed(2)}</span></div>`).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderRequests() {
+      const container = document.getElementById('customer-requests-container');
+      const requests = MediStore.getRequests();
+
+      container.innerHTML = requests.map(req => `
+        <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:1.25rem; margin-bottom:1rem;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <h4 style="font-size:1.1rem; margin-bottom:0.2rem;">${req.medicineName} (Qty: ${req.quantity})</h4>
+              <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.4rem;">${req.notes || 'No extra notes.'}</p>
+              <span style="font-size:0.75rem; color:var(--text-subtle);">Broadcasted on ${req.createdAt}</span>
+            </div>
+            <span class="badge badge-${req.status === 'RESOLVED' ? 'success' : 'warning'}">${req.status}</span>
+          </div>
+
+          ${req.pharmacyOffer ? `
+            <div style="margin-top:0.75rem; background:#ecfdf5; border:1px solid #d1fae5; padding:0.6rem 0.85rem; border-radius:var(--radius-sm); font-size:0.82rem; color:#065f46;">
+              <i class="fa-solid fa-store" style="margin-right:0.3rem;"></i> <strong>Pharmacy Response:</strong> ${req.pharmacyOffer}
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCustomerDashboard();
+    });
+  </script>
+</body>
+</html>

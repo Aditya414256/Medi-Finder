@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Request Medicine Availability - MediFind{% endblock %}
+
+{% block content %}
+<div style="max-width: 620px; margin: 1.5rem auto;">
+  <div class="card" style="box-shadow: var(--shadow-md);">
+    <div class="card-header">
+      <h2 style="font-size: 1.4rem;"><i class="fa-solid fa-paper-plane text-primary"></i> Request Medicine Availability</h2>
+    </div>
+
+    <div class="card-body">
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+        Send a direct availability inquiry to a nearby licensed pharmacy for medicines currently unavailable or unlisted.
+      </p>
+
+      <form method="POST" action="{{ url_for('customer.create_request') }}">
+        <div class="form-group">
+          <label class="form-label" for="pharmacy_id">Target Pharmacy *</label>
+          <select name="pharmacy_id" id="pharmacy_id" class="form-select" required>
+            <option value="">-- Choose a Verified Pharmacy --</option>
+            {% for p in pharmacies %}
+              <option value="{{ p.id }}" {% if selected_pharmacy and selected_pharmacy.id == p.id %}selected{% endif %}>
+                {{ p.name }} ({{ p.city }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="medicine_id">Medicine *</label>
+          <select name="medicine_id" id="medicine_id" class="form-select" required>
+            <option value="">-- Select Medicine from Catalog --</option>
+            {% for m in medicines %}
+              <option value="{{ m.id }}" {% if selected_medicine and selected_medicine.id == m.id %}selected{% endif %}>
+                {{ m.name }} ({{ m.generic_name }}) - {{ m.strength }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="quantity">Requested Quantity / Units *</label>
+          <input type="number" name="quantity" id="quantity" class="form-control" value="1" min="1" max="100" required>
+        </div>
+
+        {% if prescriptions %}
+          <div class="form-group">
+            <label class="form-label" for="prescription_id">Attach Prescription (if applicable)</label>
+            <select name="prescription_id" id="prescription_id" class="form-select">
+              <option value="">-- None / OTC Medicine --</option>
+              {% for rx in prescriptions %}
+                <option value="{{ rx.id }}">
+                  Prescription #{{ rx.id }} - {{ rx.original_filename }} ({{ rx.status }})
+                </option>
+              {% endfor %}
+            </select>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.3rem;">
+              Need to upload a new prescription? <a href="{{ url_for('customer.prescriptions') }}" target="_blank">Upload here</a>.
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="form-group">
+          <label class="form-label" for="notes">Additional Notes / Urgent Requirements</label>
+          <textarea name="notes" id="notes" class="form-control" placeholder="Specify dosage brand preference or when you require it..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+          <i class="fa-solid fa-paper-plane"></i> Submit Availability Request
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

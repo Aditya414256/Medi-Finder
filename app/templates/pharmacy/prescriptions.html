@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Prescription Review Portal - MediFind{% endblock %}
+
+{% block content %}
+<div class="portal-layout">
+  <!-- Pharmacy Sidebar -->
+  <aside class="portal-sidebar">
+    <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+      <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Pharmacy Portal</div>
+      <h3 style="font-size: 1.1rem; color: var(--text-main); margin-top: 0.2rem;">{{ pharmacy.name }}</h3>
+    </div>
+
+    <ul class="portal-nav">
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.dashboard') }}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.inventory') }}"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.orders') }}"><i class="fa-solid fa-cart-shopping"></i> Orders</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.requests') }}"><i class="fa-solid fa-inbox"></i> Customer Requests</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.prescriptions') }}" class="active"><i class="fa-solid fa-file-prescription"></i> Rx Review</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.verification') }}"><i class="fa-solid fa-shield-halved"></i> Verification & License</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.profile') }}"><i class="fa-solid fa-store"></i> Store Profile</a></li>
+    </ul>
+  </aside>
+
+  <!-- Prescriptions Content -->
+  <main class="portal-content">
+    <div>
+      <h1 style="font-size: 1.8rem; margin-bottom: 0.25rem;">Manual Prescription Review Portal</h1>
+      <p style="color: var(--text-muted);">Inspect uploaded medical prescriptions manually. AI auto-approval is strictly disabled by policy.</p>
+    </div>
+
+    <div class="disclaimer-banner" style="background: #fffbeb; border-color: #fde68a;">
+      <i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i>
+      <div>
+        <strong>Pharmacist Verification Duty:</strong> Ensure doctor details, patient name, dosage regimen, and validity date match regulatory standards prior to approving prescription medicines.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Customer</th>
+              <th>Doctor / Patient</th>
+              <th>File Document</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th style="text-align: right;">Manual Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for rx in prescriptions %}
+              <tr>
+                <td><strong>#RX-{{ rx.id }}</strong></td>
+                <td>
+                  <strong>{{ rx.customer.full_name }}</strong>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">{{ rx.customer.email }}</div>
+                </td>
+                <td>
+                  <div>Doctor: <strong>{{ rx.doctor_name or 'Unspecified' }}</strong></div>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">Patient: {{ rx.patient_name or rx.customer.full_name }}</div>
+                </td>
+                <td>
+                  <a href="{{ url_for('api.get_prescription_file', prescription_id=rx.id) }}" target="_blank" class="btn btn-sm btn-outline">
+                    <i class="fa-solid fa-file-pdf"></i> View File ({{ (rx.file_size/1024)|round(1) }} KB)
+                  </a>
+                </td>
+                <td>
+                  <span class="badge {% if rx.status == 'APPROVED' %}badge-success{% elif rx.status == 'REJECTED' %}badge-danger{% else %}badge-warning{% endif %}">
+                    {{ rx.status }}
+                  </span>
+                </td>
+                <td style="font-size: 0.85rem; color: var(--text-muted);">
+                  {{ rx.created_at.strftime('%b %d, %Y') }}
+                </td>
+                <td style="text-align: right;">
+                  <button class="btn btn-sm btn-primary" onclick="document.getElementById('rx-modal-{{ rx.id }}').style.display='block';">
+                    Review Rx
+                  </button>
+
+                  <!-- Modal -->
+                  <div id="rx-modal-{{ rx.id }}" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000;">
+                    <div class="card" style="max-width: 500px; margin: 10% auto; text-align: left;">
+                      <div class="card-header">
+                        <h3 style="font-size: 1.15rem;">Review Prescription #RX-{{ rx.id }}</h3>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById('rx-modal-{{ rx.id }}').style.display='none';">&times;</button>
+                      </div>
+                      <div class="card-body">
+                        <form method="POST" action="{{ url_for('pharmacy.prescriptions') }}">
+                          <input type="hidden" name="prescription_id" value="{{ rx.id }}">
+                          
+                          <div class="form-group">
+                            <label class="form-label">Review Decision *</label>
+                            <select name="decision" class="form-select" required>
+                              <option value="APPROVED">Approve Prescription</option>
+                              <option value="REJECTED">Reject Prescription</option>
+                            </select>
+                          </div>
+
+                          <div class="form-group">
+                            <label class="form-label">Rejection Reason / Pharmacist Notes</label>
+                            <textarea name="rejection_reason" class="form-control" placeholder="If rejecting, explain clearly (e.g. Expired Rx, missing doctor signature, unreadable image)..."></textarea>
+                          </div>
+
+                          <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                            <button type="button" class="btn btn-outline" onclick="document.getElementById('rx-modal-{{ rx.id }}').style.display='none';">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Submit Manual Decision</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                  No customer prescriptions pending review for your pharmacy.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

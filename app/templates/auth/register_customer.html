@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Customer Sign Up - MediFind{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 2rem auto;">
+  <div class="card" style="box-shadow: var(--shadow-lg);">
+    <div class="card-header" style="text-align: center; display: block; padding: 2rem 1.5rem 1rem; border-bottom: none; background: #fff;">
+      <div class="brand-icon" style="margin: 0 auto 1rem; width: 48px; height: 48px; font-size: 1.4rem;">
+        <i class="fa-solid fa-user-plus"></i>
+      </div>
+      <h2 style="font-size: 1.6rem; margin-bottom: 0.35rem;">Create Customer Account</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Find nearby medicines, upload prescriptions, and place orders.</p>
+    </div>
+
+    <div class="card-body" style="padding: 1rem 2rem 2rem;">
+      <form method="POST" action="{{ url_for('auth.register_customer') }}">
+        <div class="form-group">
+          <label class="form-label" for="full_name">Full Name *</label>
+          <input type="text" name="full_name" id="full_name" class="form-control" placeholder="John Doe" value="{{ form_data.get('full_name', '') }}" required autofocus>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address *</label>
+          <input type="email" name="email" id="email" class="form-control" placeholder="john@example.com" value="{{ form_data.get('email', '') }}" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="phone">Phone Number</label>
+          <input type="tel" name="phone" id="phone" class="form-control" placeholder="+1 555-0199" value="{{ form_data.get('phone', '') }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password *</label>
+          <input type="password" name="password" id="password" class="form-control" placeholder="At least 6 characters" required minlength="6">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="confirm_password">Confirm Password *</label>
+          <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="Repeat password" required minlength="6">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 0.5rem;">
+          <i class="fa-solid fa-check"></i> Register Account
+        </button>
+      </form>
+    </div>
+
+    <div class="card-footer" style="text-align: center; font-size: 0.9rem; padding: 1.25rem;">
+      Already have an account? <a href="{{ url_for('auth.login') }}" style="font-weight: 600;">Sign In</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

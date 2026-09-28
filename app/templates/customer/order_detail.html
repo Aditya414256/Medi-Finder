@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% block title %}Order #{{ order.order_number }} - MediFind{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.2rem;">
+      <a href="{{ url_for('customer.orders_list') }}">&larr; Back to all orders</a>
+    </div>
+    <h1 style="font-size: 2rem;">Order #{{ order.order_number }}</h1>
+    <div style="font-size: 0.9rem; color: var(--text-muted);">
+      Placed on {{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }} with <strong>{{ order.pharmacy.name }}</strong>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 0.75rem; align-items: center;">
+    <span class="badge {{ order.status_badge_class }}" style="font-size: 0.95rem; padding: 0.5rem 1rem;">
+      {{ order.status.replace('_', ' ') }}
+    </span>
+  </div>
+</div>
+
+<!-- State Machine Timeline -->
+<div class="card" style="padding: 1.5rem; margin-bottom: 2rem;">
+  <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--text-muted);"><i class="fa-solid fa-timeline"></i> Order Lifecycle Tracker</h3>
+  
+  {% if order.status in ('CANCELLED', 'REJECTED') %}
+    <div class="alert alert-danger" style="margin-bottom: 0;">
+      <i class="fa-solid fa-circle-xmark"></i>
+      <div>
+        <strong>Order {{ order.status.capitalize() }}:</strong> 
+        {{ order.rejection_reason or 'No specific reason provided.' }}
+      </div>
+    </div>
+  {% else %}
+    <div class="order-timeline">
+      <div class="timeline-step {% if order.status in ('PENDING', 'ACCEPTED', 'CONFIRMED', 'PREPARING', 'READY_FOR_PICKUP', 'OUT_FOR_DELIVERY', 'COMPLETED') %}completed{% endif %}">
+        <div class="step-icon"><i class="fa-solid fa-file-lines"></i></div>
+        <div class="step-label">Placed</div>
+      </div>
+
+      <div class="timeline-step {% if order.status in ('ACCEPTED', 'CONFIRMED', 'PREPARING', 'READY_FOR_PICKUP', 'OUT_FOR_DELIVERY', 'COMPLETED') %}completed{% elif order.status == 'PENDING' %}active{% endif %}">
+        <div class="step-icon"><i class="fa-solid fa-user-doctor"></i></div>
+        <div class="step-label">Rx & Stock Review</div>
+      </div>
+
+      <div class="timeline-step {% if order.status in ('CONFIRMED', 'PREPARING', 'READY_FOR_PICKUP', 'OUT_FOR_DELIVERY', 'COMPLETED') %}completed{% elif order.status == 'ACCEPTED' %}active{% endif %}">
+        <div class="step-icon"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="step-label">Confirmed</div>
+      </div>
+
+      <div class="timeline-step {% if order.status in ('PREPARING', 'READY_FOR_PICKUP', 'OUT_FOR_DELIVERY', 'COMPLETED') %}completed{% elif order.status == 'CONFIRMED' %}active{% endif %}">
+        <div class="step-icon"><i class="fa-solid fa-box-open"></i></div>
+        <div class="step-label">Preparing</div>
+      </div>
+
+      <div class="timeline-step {% if order.status in ('READY_FOR_PICKUP', 'OUT_FOR_DELIVERY', 'COMPLETED') %}completed{% elif order.status == 'PREPARING' %}active{% endif %}">
+        <div class="step-icon">
+          <i class="fa-solid {% if order.order_type == 'DELIVERY' %}fa-truck-fast{% else %}fa-store{% endif %}"></i>
+        </div>
+        <div class="step-label">
+          {{ 'Out for Delivery' if order.order_type == 'DELIVERY' else 'Ready for Pickup' }}
+        </div>
+      </div>
+
+      <div class="timeline-step {% if order.status == 'COMPLETED' %}completed{% endif %}">
+        <div class="step-icon"><i class="fa-solid fa-award"></i></div>
+        <div class="step-label">Completed</div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Order Content Grid -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+  <div>
+    <!-- Items Table -->
+    <div class="card" style="margin-bottom: 2rem;">
+      <div class="card-header">
+        <h3 style="font-size: 1.15rem;">Ordered Items</h3>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Medicine</th>
+              <th>Unit Price</th>
+              <th>Qty</th>
+              <th style="text-align: right;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in order.items %}
+              <tr>
+                <td>
+                  <strong>{{ item.medicine.name }}</strong>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">{{ item.medicine.strength }} &bull; {{ item.medicine.dosage_form }}</div>
+                </td>
+                <td>{{ item.unit_price|format_currency }}</td>
+                <td>{{ item.quantity }}</td>
+                <td style="text-align: right;"><strong>{{ item.subtotal|format_currency }}</strong></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" style="text-align: right; font-weight: 700;">Order Total Amount:</td>
+              <td style="text-align: right; font-size: 1.2rem; font-weight: 800; color: var(--primary);">
+                {{ order.total_amount|format_currency }}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- Notes & Pharmacist Feedback -->
+    {% if order.pharmacy_notes %}
+      <div class="card" style="margin-bottom: 2rem; border-left: 4px solid var(--primary);">
+        <div class="card-body">
+          <h4 style="font-size: 1rem; margin-bottom: 0.35rem;"><i class="fa-solid fa-comment-medical text-primary"></i> Pharmacy Update / Instructions</h4>
+          <p style="color: var(--text-main); font-size: 0.92rem;">{{ order.pharmacy_notes }}</p>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Sidebar Info -->
+  <div>
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <div class="card-header">
+        <h3 style="font-size: 1.1rem;">Fulfillment & Pharmacy</h3>
+      </div>
+      <div class="card-body" style="font-size: 0.9rem; line-height: 1.6;">
+        <div style="margin-bottom: 1rem;">
+          <span class="badge badge-secondary">{{ order.order_type }}</span>
+          {% if order.order_type == 'DELIVERY' and order.delivery_address %}
+            <div style="margin-top: 0.5rem;">
+              <strong>Delivery Address:</strong><br>
+              <span style="color: var(--text-muted);">{{ order.delivery_address }}</span>
+            </div>
+          {% else %}
+            <div style="margin-top: 0.5rem;">
+              <strong>Store Pickup Address:</strong><br>
+              <span style="color: var(--text-muted);">{{ order.pharmacy.address }}, {{ order.pharmacy.city }}</span>
+            </div>
+          {% endif %}
+        </div>
+
+        <div style="border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-bottom: 0.75rem;">
+          <strong>Contact Phone:</strong> {{ order.contact_phone }}<br>
+          <strong>Pharmacy Phone:</strong> {{ order.pharmacy.phone }}
+        </div>
+
+        {% if order.prescription %}
+          <div style="border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+            <strong>Attached Prescription:</strong><br>
+            <a href="{{ url_for('api.get_prescription_file', prescription_id=order.prescription.id) }}" target="_blank" class="btn btn-sm btn-outline" style="margin-top: 0.4rem; display: inline-flex;">
+              <i class="fa-solid fa-file-pdf"></i> View Prescription Document
+            </a>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem;">
+              Status: <strong>{{ order.prescription.status }}</strong>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Cancellation Area -->
+    {% if order.status in ('PENDING', 'ACCEPTED') %}
+      <div class="card" style="border: 1px solid #fecaca; background: #fff5f5;">
+        <div class="card-body">
+          <h4 style="font-size: 1rem; color: var(--danger); margin-bottom: 0.35rem;">Need to Cancel?</h4>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+            You may cancel this order before the pharmacy begins packing or dispatching.
+          </p>
+          <form method="POST" action="{{ url_for('customer.cancel_order', order_id=order.id) }}" onsubmit="return confirm('Are you sure you want to cancel this order?');">
+            <button type="submit" class="btn btn-danger btn-sm" style="width: 100%;">
+              <i class="fa-solid fa-ban"></i> Cancel Order
+            </button>
+          </form>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

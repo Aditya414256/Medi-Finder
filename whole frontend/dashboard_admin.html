@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal - MediFind</title>
+  <meta name="description" content="Admin management console for verifying pharmacies, monitoring catalog integrity, and reviewing platform audit logs.">
+
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <link rel="stylesheet" href="homepage/style.css">
+  <link rel="stylesheet" href="static/css/medifind-theme.css">
+</head>
+<body style="background:var(--bg-main); min-height:100vh; display:flex; flex-direction:column;">
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <a href="index.html" class="brand-logo">
+        <div class="brand-icon"><i class="fa-solid fa-staff-snake"></i></div>
+        <span>MediFind Admin</span>
+      </a>
+
+      <div class="nav-actions">
+        <div data-auth-slot style="display:inline-flex; align-items:center; gap:0.5rem;"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Dashboard Container -->
+  <main class="container dashboard-grid">
+    
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+      <div style="text-align:center; padding-bottom:1.5rem; border-bottom:1px solid var(--border-color); margin-bottom:1.25rem;">
+        <div class="brand-icon" style="margin:0 auto 0.75rem; width:64px; height:64px; font-size:1.6rem; background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h3 style="font-size:1.15rem; margin-bottom:0.2rem;">Administrator</h3>
+        <span class="badge badge-danger"><i class="fa-solid fa-lock"></i> Super Admin</span>
+      </div>
+
+      <nav>
+        <a href="javascript:void(0)" class="dashboard-nav-item active" onclick="switchAdminTab('pharmacies')">
+          <i class="fa-solid fa-building-circle-check"></i> Pharmacy Approvals
+        </a>
+        <a href="javascript:void(0)" class="dashboard-nav-item" onclick="switchAdminTab('users')">
+          <i class="fa-solid fa-users"></i> Platform Users
+        </a>
+        <a href="javascript:void(0)" class="dashboard-nav-item" onclick="switchAdminTab('audits')">
+          <i class="fa-solid fa-list-check"></i> Audit Logs
+        </a>
+      </nav>
+
+      <div style="margin-top:2rem; padding-top:1rem; border-top:1px solid var(--border-color);">
+        <button class="btn btn-outline btn-sm" style="width:100%;" onclick="MediAuth.logout()">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <section>
+      
+      <!-- Stats Row -->
+      <div class="stats-card-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fee2e2; color:#ef4444;"><i class="fa-solid fa-hospital"></i></div>
+          <div>
+            <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">Registered Pharmacies</span>
+            <h3 id="stat-pharm-total" style="font-size:1.5rem; margin:0;">4</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e0f2fe; color:#0284c7;"><i class="fa-solid fa-users"></i></div>
+          <div>
+            <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">Total Active Users</span>
+            <h3 id="stat-users-total" style="font-size:1.5rem; margin:0;">5</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#ecfdf5; color:#059669;"><i class="fa-solid fa-circle-check"></i></div>
+          <div>
+            <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">Verified Ratio</span>
+            <h3 style="font-size:1.5rem; margin:0;">100%</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pharmacy Approvals Tab -->
+      <div id="tab-admin-pharmacies">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <div>
+            <h2 style="font-size:1.5rem; margin-bottom:0.25rem;">Pharmacy Verification Queue</h2>
+            <p style="color:var(--text-muted); font-size:0.88rem; margin:0;">Review drug licenses, physical addresses, and verify partner accounts.</p>
+          </div>
+        </div>
+
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Store Name</th>
+                <th>Drug License</th>
+                <th>Contact</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="admin-pharmacy-rows">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Users Tab -->
+      <div id="tab-admin-users" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <div>
+            <h2 style="font-size:1.5rem; margin-bottom:0.25rem;">User Directory</h2>
+            <p style="color:var(--text-muted); font-size:0.88rem; margin:0;">All registered patients, pharmacists, and staff accounts.</p>
+          </div>
+        </div>
+
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Phone</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="admin-users-rows">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Audit Logs Tab -->
+      <div id="tab-admin-audits" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <div>
+            <h2 style="font-size:1.5rem; margin-bottom:0.25rem;">System Security & Audit Trail</h2>
+            <p style="color:var(--text-muted); font-size:0.88rem; margin:0;">Immutable log of system logins, verifications, and orders.</p>
+          </div>
+        </div>
+
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Action Event</th>
+                <th>Actor</th>
+                <th>IP Address</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>2026-09-11 21:30:15</td>
+                <td><span class="badge badge-success">PHARMACY_VERIFIED</span></td>
+                <td>admin@medifind.com</td>
+                <td>127.0.0.1</td>
+              </tr>
+              <tr>
+                <td>2026-09-11 21:28:40</td>
+                <td><span class="badge badge-info">USER_LOGIN_SUCCESS</span></td>
+                <td>apollo@pharmacy.com</td>
+                <td>192.168.1.14</td>
+              </tr>
+              <tr>
+                <td>2026-09-11 21:15:02</td>
+                <td><span class="badge badge-secondary">INVENTORY_PRICE_SYNC</span></td>
+                <td>system_cron</td>
+                <td>localhost</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="static/js/medifind-engine.js"></script>
+  <script>
+    function switchAdminTab(tab) {
+      document.getElementById('tab-admin-pharmacies').style.display = tab === 'pharmacies' ? 'block' : 'none';
+      document.getElementById('tab-admin-users').style.display = tab === 'users' ? 'block' : 'none';
+      document.getElementById('tab-admin-audits').style.display = tab === 'audits' ? 'block' : 'none';
+
+      document.querySelectorAll('.dashboard-nav-item').forEach(el => el.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+    }
+
+    function initAdminDashboard() {
+      const user = MediAuth.getCurrentUser();
+      if (!user || user.role !== 'admin') {
+        MediAuth.loginAs('admin');
+      }
+      renderAdminPharmacies();
+      renderAdminUsers();
+    }
+
+    function renderAdminPharmacies() {
+      const tbody = document.getElementById('admin-pharmacy-rows');
+      const pharmacies = MediStore.getPharmacies();
+
+      document.getElementById('stat-pharm-total').textContent = pharmacies.length;
+
+      tbody.innerHTML = pharmacies.map(pharm => `
+        <tr>
+          <td>
+            <div style="font-weight:700;">${pharm.name}</div>
+            <div style="font-size:0.78rem; color:var(--text-muted);">${pharm.address}</div>
+          </td>
+          <td><code>${pharm.licenseNumber}</code></td>
+          <td>${pharm.phone}</td>
+          <td>
+            <span class="badge badge-${pharm.status === 'APPROVED' ? 'success' : 'warning'}">
+              ${pharm.status}
+            </span>
+          </td>
+          <td>
+            ${pharm.status === 'APPROVED' ? `
+              <button class="btn btn-outline btn-sm" style="font-size:0.75rem; padding:0.25rem 0.5rem;" onclick="togglePharmVerification(${pharm.id}, 'PENDING')">
+                Revoke
+              </button>
+            ` : `
+              <button class="btn btn-primary btn-sm" style="font-size:0.75rem; padding:0.25rem 0.5rem;" onclick="togglePharmVerification(${pharm.id}, 'APPROVED')">
+                <i class="fa-solid fa-check"></i> Approve License
+              </button>
+            `}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function togglePharmVerification(pharmId, status) {
+      const pharmacies = MediStore.getPharmacies();
+      const pharm = pharmacies.find(p => p.id === pharmId);
+      if (pharm) {
+        pharm.status = status;
+        MediStore.savePharmacies(pharmacies);
+        renderAdminPharmacies();
+        MediUI.showToast(`Pharmacy "${pharm.name}" status updated to ${status}!`, 'success');
+      }
+    }
+
+    function renderAdminUsers() {
+      const tbody = document.getElementById('admin-users-rows');
+      const users = MediStore.getUsers();
+
+      document.getElementById('stat-users-total').textContent = users.length;
+
+      tbody.innerHTML = users.map(u => `
+        <tr>
+          <td>
+            <div style="font-weight:700;">${u.name}</div>
+            <div style="font-size:0.78rem; color:var(--text-muted);">${u.email}</div>
+          </td>
+          <td><span class="badge badge-${u.role === 'admin' ? 'danger' : (u.role === 'pharmacy' ? 'success' : 'info')}">${u.role.toUpperCase()}</span></td>
+          <td>${u.phone || 'N/A'}</td>
+          <td><span class="badge badge-success">Active</span></td>
+        </tr>
+      `).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initAdminDashboard();
+    });
+  </script>
+</body>
+</html>

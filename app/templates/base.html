@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}MediFind - Medicine Availability & Verified Pharmacy Locator{% endblock %}</title>
+  <meta name="description" content="Discover real-time medicine availability at verified nearby pharmacies with transparent inventory update timestamps.">
+  
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- Core App Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container navbar-inner">
+      <a href="{{ url_for('customer.home') }}" class="brand-logo">
+        <div class="brand-icon">
+          <i class="fa-solid fa-staff-snake"></i>
+        </div>
+        <span>MediFind</span>
+        <span class="brand-badge">Verified Hub</span>
+      </a>
+
+      <ul class="nav-links">
+        <li class="nav-item"><a href="{{ url_for('customer.home') }}" class="{% if request.endpoint == 'customer.home' %}active{% endif %}">Home</a></li>
+        <li class="nav-item"><a href="{{ url_for('customer.search') }}" class="{% if request.endpoint == 'customer.search' %}active{% endif %}">Find Medicine</a></li>
+        <li class="nav-item"><a href="{{ url_for('customer.map_view') }}" class="{% if request.endpoint == 'customer.map_view' %}active{% endif %}">Pharmacies</a></li>
+        <li class="nav-item"><a href="{{ url_for('customer.home') }}#how-it-works">How It Works</a></li>
+        
+        {% if current_user.is_authenticated and current_user.is_customer %}
+          <li class="nav-item"><a href="{{ url_for('customer.orders_list') }}" class="{% if 'orders' in request.endpoint %}active{% endif %}">My Orders</a></li>
+          <li class="nav-item"><a href="{{ url_for('customer.prescriptions') }}" class="{% if 'prescriptions' in request.endpoint %}active{% endif %}">Prescriptions</a></li>
+        {% endif %}
+
+        {% if current_user.is_authenticated and current_user.is_pharmacy %}
+          <li class="nav-item"><a href="{{ url_for('pharmacy.dashboard') }}" class="btn btn-sm btn-outline">Pharmacy Portal</a></li>
+        {% endif %}
+
+        {% if current_user.is_authenticated and current_user.is_admin %}
+          <li class="nav-item"><a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline">Admin Panel</a></li>
+        {% endif %}
+      </ul>
+
+      <div class="nav-actions">
+        {% if current_user.is_authenticated %}
+          <!-- Notifications Icon -->
+          <a href="{{ url_for('customer.notifications') }}" class="btn btn-outline btn-sm" title="Notifications" style="position: relative;">
+            <i class="fa-regular fa-bell"></i>
+            {% if unread_notifications_count > 0 %}
+              <span style="position: absolute; top: -5px; right: -5px; background: var(--danger); color: #fff; font-size: 0.65rem; font-weight: 800; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">
+                {{ unread_notifications_count }}
+              </span>
+            {% endif %}
+          </a>
+
+          <!-- Profile / Logout Dropdown -->
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <a href="{{ url_for('customer.profile') if current_user.is_customer else (url_for('pharmacy.profile') if current_user.is_pharmacy else url_for('admin.dashboard')) }}" class="btn btn-outline btn-sm">
+              <i class="fa-regular fa-user"></i>
+              <span>{{ current_user.full_name.split()[0] }}</span>
+              <span class="badge badge-secondary" style="font-size: 0.65rem;">{{ current_user.role }}</span>
+            </a>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm" title="Logout">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+          </div>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-sm">Login</a>
+          <a href="{{ url_for('auth.register_choice') }}" class="btn btn-primary btn-sm">Register</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- Flash Messages Container -->
+  <main class="app-main">
+    <div class="container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              <i class="fa-solid {% if category == 'success' %}fa-circle-check{% elif category == 'danger' %}fa-circle-exclamation{% elif category == 'warning' %}fa-triangle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+              <div>{{ message }}</div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <!-- Footer with Safety & Transparency Disclaimers -->
+  <footer class="app-footer">
+    <div class="container">
+      <!-- Mandatory Transparency Disclaimer -->
+      <div class="disclaimer-banner">
+        <i class="fa-solid fa-shield-halved"></i>
+        <div>
+          <strong>Medical Safety & Inventory Transparency Disclaimer:</strong> MediFind is a discovery and verified pharmacy locator platform. MediFind is <u>NOT</u> a medical diagnostic tool and does not provide clinical decisions. Inventory availability and stock quantities are directly reported by independent licensed pharmacies and show explicit "Last Updated" timestamps. Automated approval of prescriptions is strictly prohibited; all prescription orders are manually verified by qualified licensed pharmacists.
+        </div>
+      </div>
+
+      <div class="footer-grid">
+        <div class="footer-col">
+          <div class="brand-logo" style="margin-bottom: 0.75rem;">
+            <div class="brand-icon" style="width: 32px; height: 32px; font-size: 0.95rem;">
+              <i class="fa-solid fa-staff-snake"></i>
+            </div>
+            <span>MediFind</span>
+          </div>
+          <p style="font-size: 0.88rem; line-height: 1.5; color: var(--text-muted); margin-bottom: 1rem;">
+            Bridging patients with verified licensed pharmacies. Search medicines, inspect stock timestamps, verify licenses, and request pickup or delivery safely.
+          </p>
+          <div style="font-size: 0.8rem; color: var(--text-subtle);">
+            &copy; 2026 MediFind Platform. Built for healthcare transparency.
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h5>Platform</h5>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('customer.search') }}">Find Medicines</a></li>
+            <li><a href="{{ url_for('customer.map_view') }}">Pharmacy Locator Map</a></li>
+            <li><a href="{{ url_for('customer.search', requires_prescription='0') }}">Over-The-Counter (OTC)</a></li>
+            <li><a href="{{ url_for('customer.search', requires_prescription='1') }}">Prescription Medicines</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h5>Pharmacies</h5>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('auth.register_pharmacy') }}">Register Pharmacy</a></li>
+            <li><a href="{{ url_for('pharmacy.verification') }}">Verification Guidelines</a></li>
+            <li><a href="{{ url_for('pharmacy.inventory') }}">Inventory Management</a></li>
+            <li><a href="{{ url_for('auth.login') }}">Partner Portal Sign In</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h5>Security & Trust</h5>
+          <ul class="footer-links">
+            <li><i class="fa-solid fa-check text-success"></i> 100% Manual Rx Verification</li>
+            <li><i class="fa-solid fa-check text-success"></i> State Licensure Auditing</li>
+            <li><i class="fa-solid fa-check text-success"></i> Explicit Timestamp Disclosure</li>
+            <li><i class="fa-solid fa-check text-success"></i> Encrypted Document Vault</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>Designed & Engineered with Flask, SQLAlchemy & OpenStreetMap</div>
+        <div>Version 2.4-Production</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Leaflet Map JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- Main Scripts -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

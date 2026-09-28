@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find Medicine - MediFind Search & Real-Time Stock</title>
+  <meta name="description" content="Search medicines, check live inventory across local verified pharmacies, compare prices, and order online.">
+
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <link rel="stylesheet" href="homepage/style.css">
+  <link rel="stylesheet" href="static/css/medifind-theme.css">
+
+  <style>
+    .search-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 2rem;
+      padding: 2.5rem 0;
+    }
+    .filter-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      height: fit-content;
+    }
+    .med-search-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+      display: grid;
+      grid-template-columns: 1fr 220px;
+      gap: 1.5rem;
+    }
+    .med-search-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md);
+    }
+    .pharm-stock-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.78rem;
+      margin-right: 0.35rem;
+      margin-bottom: 0.35rem;
+    }
+    @media (max-width: 850px) {
+      .search-layout {
+        grid-template-columns: 1fr;
+      }
+      .med-search-card {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body style="background:var(--bg-main); min-height:100vh; display:flex; flex-direction:column;">
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <a href="index.html" class="brand-logo">
+        <div class="brand-icon"><i class="fa-solid fa-staff-snake"></i></div>
+        <span>MediFind</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link active">Home</a>
+      </nav>
+
+      <div class="nav-actions">
+        <!-- Cart Button -->
+        <a href="javascript:void(0)" class="btn btn-outline btn-sm" data-action="open-cart" title="View Cart">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span>Cart</span>
+          <span class="cart-badge-count" style="display:none;">0</span>
+        </a>
+
+        <!-- Dynamic Auth Slot -->
+        <div data-auth-slot style="display:inline-flex; align-items:center; gap:0.5rem;">
+          <button type="button" class="btn btn-outline btn-sm" onclick="MediUI.openModal('login-modal')">Login</button>
+          <button type="button" class="btn btn-primary btn-sm" onclick="MediUI.openModal('register-choice-modal')">Register</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Search & Browse Area -->
+  <main class="container search-layout">
+    
+    <!-- Left Filter Sidebar -->
+    <aside class="filter-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+        <h3 style="font-size:1.15rem; margin:0;"><i class="fa-solid fa-filter text-primary"></i> Filter Medicines</h3>
+        <button type="button" onclick="resetFilters()" style="background:none; border:none; color:var(--primary); font-size:0.8rem; font-weight:700; cursor:pointer;">Reset</button>
+      </div>
+
+      <!-- Search Input in Filter -->
+      <div class="form-group" style="margin-bottom:1.25rem;">
+        <label class="form-label">Search Query</label>
+        <div style="position:relative;">
+          <input type="text" id="filter-query" class="form-control" placeholder="Brand or generic name..." oninput="applyFilters()">
+        </div>
+      </div>
+
+      <!-- Stock Availability Filter -->
+      <div class="form-group" style="margin-bottom:1.25rem;">
+        <label class="form-label">Availability</label>
+        <div style="display:flex; flex-direction:column; gap:0.4rem; font-size:0.88rem;">
+          <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+            <input type="radio" name="stock-filter" value="ALL" checked onchange="applyFilters()"> All Items
+          </label>
+          <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+            <input type="radio" name="stock-filter" value="IN_STOCK" onchange="applyFilters()"> In Stock Only
+          </label>
+          <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+            <input type="radio" name="stock-filter" value="OTC_ONLY" onchange="applyFilters()"> OTC (No Prescription)
+          </label>
+        </div>
+      </div>
+
+      <!-- Category Filter -->
+      <div class="form-group" style="margin-bottom:1.25rem;">
+        <label class="form-label">Category</label>
+        <select id="filter-category" class="form-control" onchange="applyFilters()">
+          <option value="ALL">All Categories</option>
+          <option value="Antibiotics">Antibiotics</option>
+          <option value="Pain Relief & Fever">Pain Relief & Fever</option>
+          <option value="Diabetes Care">Diabetes Care</option>
+          <option value="Cardiovascular">Cardiovascular</option>
+          <option value="Vitamins & Supplements">Vitamins & Supplements</option>
+          <option value="Allergy & Cold">Allergy & Cold</option>
+          <option value="Gastrointestinal">Gastrointestinal</option>
+          <option value="Respiratory">Respiratory</option>
+        </select>
+      </div>
+
+      <!-- Max Price Filter -->
+      <div class="form-group" style="margin-bottom:1.5rem;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem;">
+          <label class="form-label" style="margin-bottom:0;">Max Price</label>
+          <span id="price-val-label" style="font-size:0.85rem; font-weight:700; color:var(--primary);">₹50.00</span>
+        </div>
+        <input type="range" id="filter-price" min="2" max="50" step="1" value="50" style="width:100%; cursor:pointer;" oninput="document.getElementById('price-val-label').textContent = '₹' + parseFloat(this.value).toFixed(2); applyFilters();">
+      </div>
+
+      <!-- Request Medicine Prompt Card -->
+      <div style="background:var(--bg-subtle); padding:1rem; border-radius:var(--radius-md); border:1px dashed var(--border-color); text-align:center;">
+        <i class="fa-solid fa-bullhorn text-warning" style="font-size:1.3rem; margin-bottom:0.4rem;"></i>
+        <h5 style="margin-bottom:0.25rem;">Can't find your medicine?</h5>
+        <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.75rem;">Broadcast a medicine request to all nearby verified pharmacies.</p>
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%; border-color:#f59e0b; color:#d97706;" onclick="MediUI.openModal('request-modal')">
+          Request Medicine
+        </button>
+      </div>
+    </aside>
+
+    <!-- Right Results Section -->
+    <section>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+        <div>
+          <h2 style="font-size:1.6rem; margin-bottom:0.25rem;">Medicine Catalog & Stock Finder</h2>
+          <p id="results-count-text" style="color:var(--text-muted); font-size:0.9rem; margin:0;">Loading available medicines...</p>
+        </div>
+        
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <label style="font-size:0.85rem; color:var(--text-muted); white-space:nowrap;">Sort By:</label>
+          <select id="sort-select" class="form-control" style="width:auto; padding:0.4rem 0.8rem; font-size:0.85rem;" onchange="applyFilters()">
+            <option value="POPULAR">Most Popular</option>
+            <option value="PRICE_LOW">Price: Low to High</option>
+            <option value="PRICE_HIGH">Price: High to Low</option>
+            <option value="NAME">Name: A to Z</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="search-results-list">
+        <!-- Rendered by JavaScript -->
+      </div>
+    </section>
+
+  </main>
+
+  <script src="static/js/medifind-engine.js"></script>
+  <script>
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+
+    function resetFilters() {
+      document.getElementById('filter-query').value = '';
+      document.getElementById('filter-category').value = 'ALL';
+      document.getElementById('filter-price').value = '50';
+      document.getElementById('price-val-label').textContent = '₹50.00';
+      document.querySelector('input[name="stock-filter"][value="ALL"]').checked = true;
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const q = document.getElementById('filter-query').value.trim().toLowerCase();
+      const cat = document.getElementById('filter-category').value;
+      const maxPrice = parseFloat(document.getElementById('filter-price').value);
+      const stockFilter = document.querySelector('input[name="stock-filter"]:checked').value;
+      const sortBy = document.getElementById('sort-select').value;
+
+      const medicines = MediStore.getMedicines();
+      const pharmacies = MediStore.getPharmacies();
+
+      let filtered = medicines.filter(med => {
+        // Text Match
+        const matchText = !q || 
+          med.name.toLowerCase().includes(q) || 
+          med.genericName.toLowerCase().includes(q) || 
+          (med.brandName && med.brandName.toLowerCase().includes(q)) ||
+          med.category.toLowerCase().includes(q);
+
+        // Category
+        const matchCat = cat === 'ALL' || med.category.toLowerCase() === cat.toLowerCase();
+
+        // Price
+        const matchPrice = med.price <= maxPrice;
+
+        // Stock
+        let totalStock = 0;
+        if (med.stocks) {
+          Object.values(med.stocks).forEach(qty => { totalStock += qty; });
+        }
+
+        let matchStock = true;
+        if (stockFilter === 'IN_STOCK') matchStock = totalStock > 0;
+        if (stockFilter === 'OTC_ONLY') matchStock = !med.requiresPrescription;
+
+        return matchText && matchCat && matchPrice && matchStock;
+      });
+
+      // Sort
+      if (sortBy === 'PRICE_LOW') filtered.sort((a, b) => a.price - b.price);
+      else if (sortBy === 'PRICE_HIGH') filtered.sort((a, b) => b.price - a.price);
+      else if (sortBy === 'NAME') filtered.sort((a, b) => a.name.localeCompare(b.name));
+
+      renderResults(filtered, pharmacies);
+    }
+
+    function renderResults(medicines, pharmacies) {
+      const container = document.getElementById('search-results-list');
+      const countText = document.getElementById('results-count-text');
+
+      countText.textContent = `Found ${medicines.length} matching medicine(s)`;
+
+      if (medicines.length === 0) {
+        container.innerHTML = `
+          <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:3rem 1.5rem; text-align:center;">
+            <i class="fa-solid fa-magnifying-glass text-muted" style="font-size:2.5rem; margin-bottom:1rem;"></i>
+            <h3>No medicines match your search criteria</h3>
+            <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.5rem;">Try adjusting your filters, searching for a generic name, or post a request to local pharmacies.</p>
+            <button class="btn btn-primary btn-sm" onclick="MediUI.openModal('request-modal')">
+              <i class="fa-solid fa-bullhorn"></i> Request This Medicine
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = medicines.map(med => {
+        return `
+          <div class="med-search-card" style="display:block; padding:1.25rem 1.5rem;">
+            <h3 style="font-size:1.25rem; margin-bottom:0.35rem; color:var(--text-main); font-weight:700;">${med.name}</h3>
+            <p style="font-size:0.9rem; color:var(--text-muted); margin:0; line-height:1.5;">
+              <strong>Generic:</strong> ${med.genericName} &bull; <strong>Brand:</strong> ${med.brandName || 'Standard'} &bull; <strong>Mfg:</strong> ${med.manufacturer}
+            </p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const initialQuery = getQueryParam('q');
+      if (initialQuery) {
+        document.getElementById('filter-query').value = initialQuery;
+      }
+      applyFilters();
+    });
+  </script>
+</body>
+</html>

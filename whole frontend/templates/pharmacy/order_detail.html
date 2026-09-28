@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% block title %}Manage Order #{{ order.order_number }} - MediFind{% endblock %}
+
+{% block content %}
+<div class="portal-layout">
+  <!-- Pharmacy Sidebar -->
+  <aside class="portal-sidebar">
+    <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+      <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Pharmacy Portal</div>
+      <h3 style="font-size: 1.1rem; color: var(--text-main); margin-top: 0.2rem;">{{ pharmacy.name }}</h3>
+    </div>
+
+    <ul class="portal-nav">
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.dashboard') }}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.inventory') }}"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.orders') }}" class="active"><i class="fa-solid fa-cart-shopping"></i> Orders</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.requests') }}"><i class="fa-solid fa-inbox"></i> Customer Requests</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.prescriptions') }}"><i class="fa-solid fa-file-prescription"></i> Rx Review</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.verification') }}"><i class="fa-solid fa-shield-halved"></i> Verification & License</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('pharmacy.profile') }}"><i class="fa-solid fa-store"></i> Store Profile</a></li>
+    </ul>
+  </aside>
+
+  <!-- Order Processing Content -->
+  <main class="portal-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <div style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.2rem;">
+          <a href="{{ url_for('pharmacy.orders') }}">&larr; Back to all orders</a>
+        </div>
+        <h1 style="font-size: 1.8rem;">Order Processing: #{{ order.order_number }}</h1>
+        <div style="font-size: 0.9rem; color: var(--text-muted);">
+          Customer: <strong>{{ order.customer.full_name }}</strong> &bull; Contact: {{ order.contact_phone }}
+        </div>
+      </div>
+
+      <div>
+        <span class="badge {{ order.status_badge_class }}" style="font-size: 0.95rem; padding: 0.5rem 1rem;">
+          Current Status: {{ order.status.replace('_', ' ') }}
+        </span>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1.2fr; gap: 2rem;">
+      <div>
+        <!-- Order Items -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <div class="card-header">
+            <h3 style="font-size: 1.15rem;">Ordered Items</h3>
+          </div>
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Medicine</th>
+                  <th>Price</th>
+                  <th>Quantity</th>
+                  <th style="text-align: right;">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in order.items %}
+                  <tr>
+                    <td>
+                      <strong>{{ item.medicine.name }}</strong>
+                      <div style="font-size: 0.8rem; color: var(--text-muted);">{{ item.medicine.generic_name }} &bull; {{ item.medicine.strength }}</div>
+                    </td>
+                    <td>{{ item.unit_price|format_currency }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td style="text-align: right;"><strong>{{ item.subtotal|format_currency }}</strong></td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" style="text-align: right; font-weight: 700;">Total Payable:</td>
+                  <td style="text-align: right; font-size: 1.2rem; font-weight: 800; color: var(--primary);">
+                    {{ order.total_amount|format_currency }}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- Prescription Inspection Section -->
+        {% if order.prescription %}
+          <div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid var(--warning);">
+            <div class="card-header">
+              <h3 style="font-size: 1.1rem;"><i class="fa-solid fa-file-prescription text-warning"></i> Prescription Verification</h3>
+              <span class="badge {% if order.prescription.status == 'APPROVED' %}badge-success{% elif order.prescription.status == 'REJECTED' %}badge-danger{% else %}badge-warning{% endif %}">
+                Rx Status: {{ order.prescription.status }}
+              </span>
+            </div>
+            <div class="card-body">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                  <strong>File:</strong> {{ order.prescription.original_filename }}<br>
+                  <span style="font-size: 0.85rem; color: var(--text-muted);">
+                    Doctor: {{ order.prescription.doctor_name or 'Not specified' }} &bull; Patient: {{ order.prescription.patient_name or order.customer.full_name }}
+                  </span>
+                </div>
+                <a href="{{ url_for('api.get_prescription_file', prescription_id=order.prescription.id) }}" target="_blank" class="btn btn-sm btn-primary">
+                  <i class="fa-solid fa-eye"></i> View & Verify Prescription
+                </a>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Customer Notes -->
+        {% if order.customer_notes %}
+          <div class="card" style="margin-bottom: 1.5rem;">
+            <div class="card-body">
+              <h4 style="font-size: 0.95rem; margin-bottom: 0.25rem; color: var(--text-muted);">Customer Request Notes:</h4>
+              <p style="font-size: 0.9rem;">{{ order.customer_notes }}</p>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- State Machine Control Panel -->
+      <div>
+        <div class="card" style="box-shadow: var(--shadow-md);">
+          <div class="card-header" style="background: var(--primary-light);">
+            <h3 style="font-size: 1.15rem; color: var(--primary-dark);"><i class="fa-solid fa-sliders"></i> Advance Order Status</h3>
+          </div>
+          <div class="card-body">
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+              Enforces strict sequential state transitions. Customer is automatically notified.
+            </p>
+
+            <form method="POST" action="{{ url_for('pharmacy.order_detail', order_id=order.id) }}">
+              <div class="form-group">
+                <label class="form-label" for="new_status">Next Status Action *</label>
+                <select name="new_status" id="new_status" class="form-select" required>
+                  <option value="">-- Choose Next State --</option>
+                  
+                  {% if order.status == 'PENDING' %}
+                    <option value="ACCEPTED">Accept Order</option>
+                    <option value="REJECTED">Reject Order</option>
+                  {% elif order.status == 'ACCEPTED' %}
+                    <option value="CONFIRMED">Confirm Order</option>
+                  {% elif order.status == 'CONFIRMED' %}
+                    <option value="PREPARING">Mark as Preparing (Packing)</option>
+                  {% elif order.status == 'PREPARING' %}
+                    {% if order.order_type == 'DELIVERY' %}
+                      <option value="OUT_FOR_DELIVERY">Mark Out for Delivery</option>
+                    {% else %}
+                      <option value="READY_FOR_PICKUP">Mark Ready for In-Store Pickup</option>
+                    {% endif %}
+                  {% elif order.status in ('READY_FOR_PICKUP', 'OUT_FOR_DELIVERY') %}
+                    <option value="COMPLETED">Mark as Completed (Handed over / Delivered)</option>
+                  {% endif %}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="pharmacy_notes">Note to Customer (Optional)</label>
+                <textarea name="pharmacy_notes" id="pharmacy_notes" class="form-control" placeholder="e.g. Packed in bag #4. Ready at counter B.">{{ order.pharmacy_notes or '' }}</textarea>
+              </div>
+
+              <div class="form-group" id="rejection-reason-group" style="display: none;">
+                <label class="form-label" for="rejection_reason" style="color: var(--danger);">Rejection Reason *</label>
+                <textarea name="rejection_reason" id="rejection_reason" class="form-control" placeholder="Specify reason (e.g. Stock expired, Prescription illegible)..."></textarea>
+              </div>
+
+              {% if order.status not in ('COMPLETED', 'CANCELLED', 'REJECTED') %}
+                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+                  <i class="fa-solid fa-check"></i> Update Status
+                </button>
+              {% else %}
+                <div class="alert alert-info" style="font-size: 0.85rem; margin-bottom: 0;">
+                  This order is in terminal status ({{ order.status }}). No further transitions allowed.
+                </div>
+              {% endif %}
+            </form>
+          </div>
+        </div>
+
+        <!-- Fulfillment Info Details -->
+        <div class="card" style="margin-top: 1.5rem;">
+          <div class="card-header">
+            <h4 style="font-size: 1rem;">Fulfillment Details</h4>
+          </div>
+          <div class="card-body" style="font-size: 0.88rem; line-height: 1.6;">
+            <strong>Fulfillment:</strong> {{ order.order_type }}<br>
+            {% if order.order_type == 'DELIVERY' %}
+              <strong>Delivery Address:</strong><br>
+              <span style="color: var(--text-muted);">{{ order.delivery_address }}</span><br>
+            {% endif %}
+            <strong>Customer Phone:</strong> {{ order.contact_phone }}<br>
+            <strong>Customer Email:</strong> {{ order.customer.email }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const statusSelect = document.getElementById('new_status');
+    const reasonGroup = document.getElementById('rejection-reason-group');
+    const reasonInput = document.getElementById('rejection_reason');
+
+    if (statusSelect && reasonGroup) {
+      statusSelect.addEventListener('change', () => {
+        if (statusSelect.value === 'REJECTED') {
+          reasonGroup.style.display = 'block';
+          reasonInput.setAttribute('required', 'required');
+        } else {
+          reasonGroup.style.display = 'none';
+          reasonInput.removeAttribute('required');
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

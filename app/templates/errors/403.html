@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Access Denied (403) - MediFind{% endblock %}
+
+{% block content %}
+<div style="text-align: center; padding: 4rem 1rem;">
+  <div style="font-size: 4rem; color: var(--danger); margin-bottom: 1rem;">
+    <i class="fa-solid fa-shield-halved"></i>
+  </div>
+  <h1 style="font-size: 2.2rem; margin-bottom: 0.75rem;">Access Denied (403)</h1>
+  <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 2rem;">
+    You do not have permission to access this resource or administrative portal with your current role.
+  </p>
+  <div style="display: flex; gap: 1rem; justify-content: center;">
+    <a href="{{ url_for('customer.home') }}" class="btn btn-primary">Return Home</a>
+    <a href="{{ url_for('auth.login') }}" class="btn btn-outline">Switch Account</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pharmacy Store Portal - MediFind</title>
+  <meta name="description" content="Manage your pharmacy inventory, update real-time medicine stock, approve prescription orders, and fulfill delivery requests.">
+
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <link rel="stylesheet" href="homepage/style.css">
+  <link rel="stylesheet" href="static/css/medifind-theme.css">
+</head>
+<body style="background:var(--bg-main); min-height:100vh; display:flex; flex-direction:column;">
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <a href="index.html" class="brand-logo">
+        <div class="brand-icon"><i class="fa-solid fa-staff-snake"></i></div>
+        <span>MediFind</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link">Home</a>
+      </nav>
+
+      <div class="nav-actions">
+        <div data-auth-slot style="display:inline-flex; align-items:center; gap:0.5rem;"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Dashboard Container -->
+  <main class="container dashboard-grid">
+    
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+      <div style="text-align:center; padding-bottom:1.5rem; border-bottom:1px solid var(--border-color); margin-bottom:1.25rem;">
+        <div class="brand-icon" style="margin:0 auto 0.75rem; width:64px; height:64px; font-size:1.6rem; background:linear-gradient(135deg, #059669 0%, #047857 100%);">
+          <i class="fa-solid fa-prescription-bottle-medical"></i>
+        </div>
+        <h3 id="pharmacy-name-heading" style="font-size:1.15rem; margin-bottom:0.2rem;">Apollo HealthCare</h3>
+        <span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Verified Partner Store</span>
+      </div>
+
+      <nav>
+        <a href="javascript:void(0)" class="dashboard-nav-item active" onclick="switchPharmacyTab('inventory')">
+          <i class="fa-solid fa-boxes-stacked"></i> Live Inventory
+        </a>
+        <a href="javascript:void(0)" class="dashboard-nav-item" onclick="switchPharmacyTab('orders')">
+          <i class="fa-solid fa-clipboard-list"></i> Incoming Orders
+        </a>
+        <a href="javascript:void(0)" class="dashboard-nav-item" onclick="switchPharmacyTab('broadcasts')">
+          <i class="fa-solid fa-bullhorn"></i> Customer Requests
+        </a>
+      </nav>
+
+      <div style="margin-top:2rem; padding-top:1rem; border-top:1px solid var(--border-color);">
+        <button class="btn btn-outline btn-sm" style="width:100%;" onclick="MediAuth.logout()">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <section>
+      
+      <!-- Stats Row -->
+      <div class="stats-card-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e0f2fe; color:#0284c7;"><i class="fa-solid fa-pills"></i></div>
+          <div>
+            <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">Active Catalog Items</span>
+            <h3 id="stat-med-count" style="font-size:1.5rem; margin:0;">10</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#ecfdf5; color:#059669;"><i class="fa-solid fa-truck"></i></div>
+          <div>
+            <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">Orders Fulfilled</span>
+            <h3 style="font-size:1.5rem; margin:0;">24</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fef3c7; color:#d97706;"><i class="fa-solid fa-star"></i></div>
+          <div>
+            <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">Store Rating</span>
+            <h3 style="font-size:1.5rem; margin:0;">4.8 / 5.0</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Inventory Tab -->
+      <div id="tab-pharm-inventory">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <div>
+            <h2 style="font-size:1.5rem; margin-bottom:0.25rem;">Stock & Price Management</h2>
+            <p style="color:var(--text-muted); font-size:0.88rem; margin:0;">Update current stock quantities and unit pricing in real-time.</p>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" onclick="addNewMedicinePrompt()">
+            <i class="fa-solid fa-plus"></i> Add New Medicine
+          </button>
+        </div>
+
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Medicine & Generic</th>
+                <th>Category</th>
+                <th>Prescription</th>
+                <th>Unit Price (₹)</th>
+                <th>In Stock (Units)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pharmacy-inventory-rows">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Incoming Orders Tab -->
+      <div id="tab-pharm-orders" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <div>
+            <h2 style="font-size:1.5rem; margin-bottom:0.25rem;">Prescription Orders Queue</h2>
+            <p style="color:var(--text-muted); font-size:0.88rem; margin:0;">Approve prescriptions and dispatch patient deliveries.</p>
+          </div>
+        </div>
+
+        <div id="pharmacy-orders-list">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Broadcast Requests Tab -->
+      <div id="tab-pharm-broadcasts" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <div>
+            <h2 style="font-size:1.5rem; margin-bottom:0.25rem;">Nearby Patient Stock Requests</h2>
+            <p style="color:var(--text-muted); font-size:0.88rem; margin:0;">Patients asking for medications not currently available.</p>
+          </div>
+        </div>
+
+        <div id="pharmacy-broadcasts-list">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="static/js/medifind-engine.js"></script>
+  <script>
+    function switchPharmacyTab(tab) {
+      document.getElementById('tab-pharm-inventory').style.display = tab === 'inventory' ? 'block' : 'none';
+      document.getElementById('tab-pharm-orders').style.display = tab === 'orders' ? 'block' : 'none';
+      document.getElementById('tab-pharm-broadcasts').style.display = tab === 'broadcasts' ? 'block' : 'none';
+
+      document.querySelectorAll('.dashboard-nav-item').forEach(el => el.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+    }
+
+    function initPharmacyDashboard() {
+      const user = MediAuth.getCurrentUser();
+      if (!user || user.role !== 'pharmacy') {
+        MediAuth.loginAs('pharmacy'); // Switch to demo pharmacy
+      }
+      renderInventory();
+      renderPharmacyOrders();
+      renderPharmacyBroadcasts();
+    }
+
+    function renderInventory() {
+      const tbody = document.getElementById('pharmacy-inventory-rows');
+      const medicines = MediStore.getMedicines();
+      const currentPharmacyId = 1;
+
+      document.getElementById('stat-med-count').textContent = medicines.length;
+
+      tbody.innerHTML = medicines.map(med => {
+        const currentStock = (med.stocks && med.stocks[currentPharmacyId] !== undefined) ? med.stocks[currentPharmacyId] : 20;
+
+        return `
+          <tr>
+            <td>
+              <div style="font-weight:700; color:var(--text-main);">${med.name}</div>
+              <div style="font-size:0.78rem; color:var(--text-muted);">${med.genericName}</div>
+            </td>
+            <td><span class="badge badge-secondary" style="font-size:0.75rem;">${med.category}</span></td>
+            <td>
+              ${med.requiresPrescription ? '<span class="badge badge-warning" style="font-size:0.75rem;"><i class="fa-solid fa-prescription"></i> Rx</span>' : '<span class="badge badge-success" style="font-size:0.75rem;">OTC</span>'}
+            </td>
+            <td>
+              <input type="number" step="0.1" value="${med.price.toFixed(2)}" style="width:75px; padding:0.25rem 0.4rem; font-size:0.85rem;" onchange="updateMedPrice(${med.id}, this.value)">
+            </td>
+            <td>
+              <input type="number" min="0" max="999" value="${currentStock}" style="width:75px; padding:0.25rem 0.4rem; font-size:0.85rem;" onchange="updateMedStock(${med.id}, ${currentPharmacyId}, this.value)">
+            </td>
+            <td>
+              <button class="btn btn-outline btn-sm" style="padding:0.25rem 0.6rem; font-size:0.75rem;" onclick="MediUI.showToast('Updated ${med.name} inventory status', 'success')">
+                <i class="fa-solid fa-floppy-disk"></i> Save
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function updateMedPrice(medId, newPrice) {
+      const medicines = MediStore.getMedicines();
+      const med = medicines.find(m => m.id === medId);
+      if (med) {
+        med.price = parseFloat(newPrice) || med.price;
+        MediStore.saveMedicines(medicines);
+        MediUI.showToast(`Updated price for ${med.name} to ₹${med.price.toFixed(2)}`, 'success');
+      }
+    }
+
+    function updateMedStock(medId, pharmId, newStock) {
+      const medicines = MediStore.getMedicines();
+      const med = medicines.find(m => m.id === medId);
+      if (med) {
+        if (!med.stocks) med.stocks = {};
+        med.stocks[pharmId] = parseInt(newStock, 10) || 0;
+        MediStore.saveMedicines(medicines);
+        MediUI.showToast(`Updated stock count for ${med.name} to ${med.stocks[pharmId]} units`, 'success');
+      }
+    }
+
+    function addNewMedicinePrompt() {
+      const name = prompt('Enter new medicine name (e.g. Omeprazole 20mg):');
+      if (!name) return;
+      const generic = prompt('Enter generic formula:', 'Omeprazole');
+      const category = prompt('Enter category:', 'Gastrointestinal');
+      const price = parseFloat(prompt('Enter unit price (₹):', '85.00')) || 85.00;
+      const stock = parseInt(prompt('Initial stock quantity:', '50'), 10) || 50;
+
+      const medicines = MediStore.getMedicines();
+      const newMed = {
+        id: Date.now(),
+        name,
+        genericName: generic,
+        brandName: name.split(' ')[0],
+        category: category || 'General',
+        dosageForm: 'Capsule',
+        strength: '20 mg',
+        price,
+        requiresPrescription: false,
+        description: 'New medicine batch added to inventory catalog.',
+        stocks: { 1: stock, 2: stock, 3: 0 }
+      };
+
+      medicines.unshift(newMed);
+      MediStore.saveMedicines(medicines);
+      renderInventory();
+      MediUI.showToast(`"${name}" added to catalog with ${stock} units stock!`, 'success');
+    }
+
+    function renderPharmacyOrders() {
+      const container = document.getElementById('pharmacy-orders-list');
+      const orders = MediStore.getOrders();
+
+      container.innerHTML = orders.map(ord => `
+        <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:1.25rem; margin-bottom:1rem;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <span style="font-weight:800; font-size:1.1rem;">${ord.id}</span> • <span style="color:var(--text-muted); font-size:0.85rem;">Patient: ${ord.userName} (${ord.address})</span>
+              <div style="margin-top:0.4rem; font-size:0.85rem;">
+                <strong>Ordered:</strong> ${ord.items.map(i => `${i.qty}x ${i.name}`).join(', ')}
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <span style="font-size:1.2rem; font-weight:800; color:var(--primary);">₹${ord.total.toFixed(2)}</span>
+              <span class="badge badge-info" style="display:block; margin-top:0.2rem;">${ord.status}</span>
+            </div>
+          </div>
+
+          <div style="margin-top:1rem; display:flex; gap:0.5rem; justify-content:flex-end;">
+            <button class="btn btn-outline btn-sm" onclick="advanceOrderStatus('${ord.id}', 'VERIFIED')"><i class="fa-solid fa-check"></i> Verify Rx</button>
+            <button class="btn btn-outline btn-sm" onclick="advanceOrderStatus('${ord.id}', 'PACKED')"><i class="fa-solid fa-box"></i> Mark Packed</button>
+            <button class="btn btn-primary btn-sm" onclick="advanceOrderStatus('${ord.id}', 'OUT_FOR_DELIVERY')"><i class="fa-solid fa-truck"></i> Dispatch Delivery</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function advanceOrderStatus(orderId, newStatus) {
+      const orders = MediStore.getOrders();
+      const ord = orders.find(o => o.id === orderId);
+      if (ord) {
+        ord.status = newStatus;
+        if (newStatus === 'VERIFIED') ord.statusStep = 2;
+        if (newStatus === 'PACKED') ord.statusStep = 3;
+        if (newStatus === 'OUT_FOR_DELIVERY') ord.statusStep = 4;
+        if (newStatus === 'DELIVERED') ord.statusStep = 5;
+        MediStore.saveOrders(orders);
+        renderPharmacyOrders();
+        MediUI.showToast(`Order ${orderId} updated to ${newStatus}!`, 'success');
+      }
+    }
+
+    function renderPharmacyBroadcasts() {
+      const container = document.getElementById('pharmacy-broadcasts-list');
+      const requests = MediStore.getRequests();
+
+      container.innerHTML = requests.map(req => `
+        <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:1.25rem; margin-bottom:1rem;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <h4 style="font-size:1.05rem; margin-bottom:0.2rem;">${req.medicineName} (Qty: ${req.quantity})</h4>
+              <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.4rem;">Requested by patient ${req.userName} • "${req.notes || 'Urgent requirement'}"</p>
+            </div>
+            <span class="badge badge-${req.status === 'RESOLVED' ? 'success' : 'warning'}">${req.status}</span>
+          </div>
+          <div style="margin-top:0.75rem;">
+            <button class="btn btn-primary btn-sm" onclick="offerStockToPatient('${req.id}')">
+              <i class="fa-solid fa-bell"></i> Notify Patient We Have Stock
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function offerStockToPatient(reqId) {
+      const requests = MediStore.getRequests();
+      const req = requests.find(r => r.id === reqId);
+      if (req) {
+        req.status = 'RESOLVED';
+        req.pharmacyOffer = 'Apollo HealthCare has reserved this medicine for you.';
+        MediStore.saveRequests(requests);
+        renderPharmacyBroadcasts();
+        MediUI.showToast('Patient has been notified of stock availability!', 'success');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initPharmacyDashboard();
+    });
+  </script>
+</body>
+</html>

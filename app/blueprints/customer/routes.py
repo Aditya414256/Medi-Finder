@@ -53,16 +53,25 @@ def search():
 
     categories = MedicineService.get_all_categories()
 
-    # Pre-fetch availability stats for each medicine
+    # Pre-fetch availability stats and price for each medicine
     medicine_stats = {}
     for med in medicines:
-        verified_stock = PharmacyInventory.query.filter_by(medicine_id=med.id).join(Pharmacy).filter(
+        inv_items = PharmacyInventory.query.filter_by(medicine_id=med.id).join(Pharmacy).filter(
             Pharmacy.verification_status == 'APPROVED',
             Pharmacy.is_active == True,
             PharmacyInventory.stock_status.in_(['AVAILABLE', 'LOW_STOCK'])
-        ).count()
+        ).all()
+        verified_stock = len(inv_items)
+        prices = [item.price for item in inv_items if item.price and item.price > 0]
+        min_price = min(prices) if prices else None
+        if not min_price:
+            any_inv = PharmacyInventory.query.filter_by(medicine_id=med.id).filter(PharmacyInventory.price > 0).first()
+            if any_inv:
+                min_price = any_inv.price
+
         medicine_stats[med.id] = {
-            'verified_pharmacies_count': verified_stock
+            'verified_pharmacies_count': verified_stock,
+            'price': min_price
         }
 
     return render_template(

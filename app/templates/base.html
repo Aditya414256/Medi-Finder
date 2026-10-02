@@ -32,7 +32,6 @@
         <li class="nav-item"><a href="{{ url_for('customer.home') }}" class="{% if request.endpoint == 'customer.home' %}active{% endif %}">Home</a></li>
         <li class="nav-item"><a href="{{ url_for('customer.search') }}" class="{% if request.endpoint == 'customer.search' %}active{% endif %}">Find Medicine</a></li>
         <li class="nav-item"><a href="{{ url_for('customer.map_view') }}" class="{% if request.endpoint == 'customer.map_view' %}active{% endif %}">Pharmacies</a></li>
-        <li class="nav-item"><a href="{{ url_for('customer.home') }}#how-it-works">How It Works</a></li>
         
         {% if current_user.is_authenticated and current_user.is_customer %}
           <li class="nav-item"><a href="{{ url_for('customer.orders_list') }}" class="{% if 'orders' in request.endpoint %}active{% endif %}">My Orders</a></li>

@@ -1,318 +1,101 @@
 {% extends 'base.html' %}
-{% block title %}{{ medicine.name }} - Availability & Pharmacies - MediFind{% endblock %}
-
-{% block extra_css %}
-<style>
-  .flow-container {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 2rem 1.5rem 4rem;
-    width: 100%;
-  }
-
-  /* Medicine Top Bar */
-  .medicine-top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    padding-bottom: 1.25rem;
-    border-bottom: 1px solid var(--border-color);
-  }
-  .medicine-title {
-    font-size: 1.85rem;
-    font-weight: 800;
-    color: var(--text-main);
-    margin: 0;
-  }
-  .back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  .back-link:hover {
-    color: var(--primary);
-  }
-
-  /* Fulfillment Choice Section */
-  .choice-section {
-    background: #ffffff;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: 2rem;
-    box-shadow: var(--shadow-sm);
-    margin-bottom: 2rem;
-    text-align: center;
-  }
-  .choice-heading {
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: var(--text-main);
-    margin-bottom: 1.5rem;
-  }
-  .choice-buttons-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
-  }
-  .choice-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 1.5rem 1rem;
-    border-radius: var(--radius-md);
-    border: 2px solid var(--border-color);
-    background: var(--bg-surface);
-    color: var(--text-main);
-    text-decoration: none;
-    font-size: 1.15rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-sm);
-  }
-  .choice-btn i {
-    font-size: 1.85rem;
-    margin-bottom: 0.6rem;
-  }
-  .choice-btn:hover {
-    border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-    color: var(--primary);
-  }
-  .choice-btn.active-store {
-    border-color: var(--primary);
-    background: var(--primary-light);
-    color: var(--primary-dark);
-  }
-  .choice-btn.active-delivery {
-    border-color: var(--accent);
-    background: var(--accent-light);
-    color: var(--accent-dark);
-  }
-
-  /* Pharmacies List: Shows ONLY Pharmacy Name & Distance */
-  .pharmacy-results-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  .pharmacy-results-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text-main);
-    margin: 0;
-  }
-  .pharmacies-simple-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  .pharmacy-simple-card {
-    background: #ffffff;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 1.25rem 1.75rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    text-decoration: none;
-    color: var(--text-main);
-    box-shadow: var(--shadow-sm);
-    transition: all 0.2s ease;
-  }
-  .pharmacy-simple-card:hover {
-    border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-    color: var(--primary);
-  }
-  .pharmacy-simple-name {
-    font-size: 1.15rem;
-    font-weight: 700;
-  }
-  .pharmacy-simple-distance {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--primary);
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-
-  @media (max-width: 600px) {
-    .choice-buttons-grid {
-      grid-template-columns: 1fr;
-      gap: 0.75rem;
-    }
-    .medicine-top-bar {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.5rem;
-    }
-  }
-</style>
-{% endblock %}
+{% block title %}{{ medicine.name }} - MediFind{% endblock %}
 
 {% block content %}
-<div class="flow-container">
-
-  <!-- Top Bar: Selected Medicine -->
-  <div class="medicine-top-bar">
-    <div>
-      <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Selected Medicine</span>
-      <h1 class="medicine-title">{{ medicine.name }}</h1>
+{% if mode == 'delivery' %}
+  <!-- DELIVERY SCREEN: Shows ONLY Medicine Name + Available Pharmacies (Name + Distance only) -->
+  <div style="max-width: 600px; margin: 2.5rem auto;">
+    
+    <div style="margin-bottom: 1.5rem; text-align: center;">
+      <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main);">
+        {{ medicine.name }}
+      </h1>
+      <a href="{{ url_for('customer.medicine_detail', medicine_id=medicine.id) }}" style="font-size: 0.9rem; color: var(--text-muted); text-decoration: none;">
+        &larr; Back to choices
+      </a>
     </div>
-    <a href="{{ url_for('customer.search') }}" class="back-link">
-      <i class="fa-solid fa-arrow-left"></i> Change Medicine
-    </a>
+
+    <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem; color: var(--text-main);">
+      Available Pharmacies
+    </h2>
+
+    {% if pharmacies %}
+      <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+        {% for p in pharmacies %}
+          <a href="{{ url_for('customer.create_order', pharmacy_id=p.pharmacy_id, medicine_id=medicine.id, order_type='DELIVERY') }}" class="card" style="padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; text-decoration: none; color: var(--text-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); transition: border-color 0.2s, box-shadow 0.2s;">
+            <div style="font-size: 1.15rem; font-weight: 700;">
+              {{ p.pharmacy_name }}
+            </div>
+            {% if user_lat and user_lon and p.distance_km is not none and p.distance_km > 0 %}
+              <div style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">
+                {{ "%.1f"|format(p.distance_km) }} km
+              </div>
+            {% endif %}
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+        <p style="color: var(--text-muted); font-size: 1rem; margin: 0;">
+          No pharmacies currently have this medicine available for home delivery.
+        </p>
+      </div>
+    {% endif %}
+
   </div>
 
-  <!-- Step 1 Choice: How would you like to get it? -->
-  <section class="choice-section">
-    <h2 class="choice-heading">How would you like to get it?</h2>
-    
-    <div class="choice-buttons-grid">
-      <!-- Choice 1: Take From Store -->
-      <a 
-        href="{{ url_for('customer.medicine_detail', medicine_id=medicine.id, mode='store', lat=user_lat or '', lon=user_lon or '') }}" 
-        class="choice-btn {% if mode == 'store' %}active-store{% endif %}"
-        id="btn-choice-store"
-      >
-        <i class="fa-solid fa-store" style="color: var(--primary);"></i>
-        <span>Take From Store</span>
+{% else %}
+  <!-- INITIAL SCREEN: Shows ONLY Medicine Name and the TWO buttons -->
+  <div style="max-width: 500px; margin: 4rem auto; text-align: center;">
+
+    <h1 style="font-size: 2.2rem; font-weight: 700; margin-bottom: 2.5rem; color: var(--text-main);">
+      {{ medicine.name }}
+    </h1>
+
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <a href="{{ url_for('customer.medicine_store_order', medicine_id=medicine.id) }}" id="btn-store" class="btn btn-primary btn-lg" style="padding: 1.25rem; font-size: 1.2rem; font-weight: 700;">
+        Take From Store
       </a>
 
-      <!-- Choice 2: Take From Delivery -->
-      <a 
-        href="{{ url_for('customer.medicine_detail', medicine_id=medicine.id, mode='delivery', lat=user_lat or '', lon=user_lon or '') }}" 
-        class="choice-btn {% if mode == 'delivery' %}active-delivery{% endif %}"
-        id="btn-choice-delivery"
-      >
-        <i class="fa-solid fa-truck" style="color: var(--accent);"></i>
-        <span>Take From Delivery</span>
+      <a href="{{ url_for('customer.medicine_detail', medicine_id=medicine.id, mode='delivery') }}" id="btn-delivery" class="btn btn-outline btn-lg" style="padding: 1.25rem; font-size: 1.2rem; font-weight: 700;">
+        Take From Delivery
       </a>
     </div>
-  </section>
 
-  <!-- Step 2: Available Pharmacies List (Appears after choosing Store or Delivery) -->
-  {% if mode %}
-    <section>
-      <!-- Section Header -->
-      <div class="pharmacy-results-header">
-        <h3 class="pharmacy-results-title">
-          {% if mode == 'store' %}
-            Take From Store &bull; Available Pharmacies
-          {% else %}
-            Take From Delivery &bull; Available Pharmacies
-          {% endif %}
-        </h3>
-
-        <!-- Geolocation notice & trigger -->
-        {% if user_lat and user_lon %}
-          <span style="font-size: 0.85rem; color: var(--accent); font-weight: 600;">
-            <i class="fa-solid fa-location-dot"></i> Sorted nearest first
-          </span>
-        {% else %}
-          <button type="button" data-action="get-location" class="btn btn-sm btn-outline">
-            <i class="fa-solid fa-location-crosshairs"></i> Allow Location for Exact Distance
-          </button>
-        {% endif %}
-      </div>
-
-      {% if not user_lat or not user_lon %}
-        <div class="card" style="padding: 0.75rem 1.25rem; margin-bottom: 1.25rem; background: var(--bg-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; font-size: 0.88rem; color: var(--text-muted);">
-          <span>Enable location to sort pharmacies by distance from you.</span>
-          <button type="button" data-action="get-location" class="btn btn-sm btn-primary" style="padding: 0.3rem 0.75rem; font-size: 0.82rem;">
-            <i class="fa-solid fa-location-crosshairs"></i> Detect Location
-          </button>
-        </div>
-      {% endif %}
-
-      <!-- Simple Pharmacies List: Shows ONLY Pharmacy Name & Distance -->
-      {% if pharmacies %}
-        <div class="pharmacies-simple-list">
-          {% for p in pharmacies %}
-            <a 
-              href="{{ url_for('customer.create_order', pharmacy_id=p.pharmacy_id, medicine_id=medicine.id, order_type=('PICKUP' if mode == 'store' else 'DELIVERY')) }}" 
-              class="pharmacy-simple-card"
-              title="Select {{ p.pharmacy_name }} for {{ 'store pickup' if mode == 'store' else 'home delivery' }}"
-            >
-              <div class="pharmacy-simple-name">{{ p.pharmacy_name }}</div>
-              
-              <div class="pharmacy-simple-distance">
-                {% if user_lat and user_lon and p.distance_km is not none %}
-                  {{ "%.1f"|format(p.distance_km) }} km
-                {% else %}
-                  <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">In Stock</span>
-                {% endif %}
-                <i class="fa-solid fa-chevron-right" style="font-size: 0.85rem; color: var(--text-muted); margin-left: 0.35rem;"></i>
-              </div>
-            </a>
-          {% endfor %}
-        </div>
-      {% else %}
-        <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
-          <i class="fa-solid fa-store-slash" style="font-size: 2.5rem; color: var(--text-subtle); margin-bottom: 0.75rem; display: block;"></i>
-          <h4 style="font-size: 1.2rem; margin-bottom: 0.4rem;">No Pharmacies Available</h4>
-          <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 440px; margin: 0 auto 1.25rem;">
-            {% if mode == 'store' %}
-              No verified pharmacy currently has {{ medicine.name }} in stock with in-store pickup support.
-            {% else %}
-              No verified pharmacy currently has {{ medicine.name }} in stock with home delivery support.
-            {% endif %}
-          </p>
-          <div style="display: flex; justify-content: center; gap: 0.75rem;">
-            {% if mode == 'store' %}
-              <a href="{{ url_for('customer.medicine_detail', medicine_id=medicine.id, mode='delivery', lat=user_lat or '', lon=user_lon or '') }}" class="btn btn-outline btn-sm">
-                <i class="fa-solid fa-truck"></i> Check Delivery Option Instead
-              </a>
-            {% else %}
-              <a href="{{ url_for('customer.medicine_detail', medicine_id=medicine.id, mode='store', lat=user_lat or '', lon=user_lon or '') }}" class="btn btn-outline btn-sm">
-                <i class="fa-solid fa-store"></i> Check Store Pickup Option Instead
-              </a>
-            {% endif %}
-          </div>
-        </div>
-      {% endif %}
-
-    </section>
-  {% else %}
-    <!-- Prompt when user has not yet chosen Store or Delivery -->
-    <div style="text-align: center; color: var(--text-muted); font-size: 0.95rem; margin-top: 1rem;">
-      <p>Please select <strong>Take From Store</strong> or <strong>Take From Delivery</strong> above to view available pharmacies.</p>
-    </div>
-  {% endif %}
-
-</div>
+  </div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-  // Seamless geolocation attachment to choice buttons
   document.addEventListener('DOMContentLoaded', () => {
     const savedLat = sessionStorage.getItem('user_lat');
     const savedLon = sessionStorage.getItem('user_lon');
 
-    if (savedLat && savedLon) {
-      ['btn-choice-store', 'btn-choice-delivery'].forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn && (!btn.href.includes('lat=') || btn.href.includes('lat=&'))) {
-          const url = new URL(btn.href, window.location.origin);
-          url.searchParams.set('lat', savedLat);
-          url.searchParams.set('lon', savedLon);
-          btn.href = url.pathname + url.search;
-        }
-      });
+    function updateBtn(id) {
+      const btn = document.getElementById(id);
+      if (btn && savedLat && savedLon) {
+        const u = new URL(btn.href, window.location.origin);
+        u.searchParams.set('lat', savedLat);
+        u.searchParams.set('lon', savedLon);
+        btn.href = u.pathname + u.search;
+      }
+    }
+
+    updateBtn('btn-store');
+    updateBtn('btn-delivery');
+
+    if (!savedLat && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          sessionStorage.setItem('user_lat', pos.coords.latitude.toFixed(6));
+          sessionStorage.setItem('user_lon', pos.coords.longitude.toFixed(6));
+          updateBtn('btn-store');
+          updateBtn('btn-delivery');
+        },
+        () => {},
+        { timeout: 3000 }
+      );
     }
   });
 </script>

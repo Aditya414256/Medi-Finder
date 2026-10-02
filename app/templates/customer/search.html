@@ -141,9 +141,8 @@
       <!-- ONLY MEDICINE NAME DISPLAYED AS CLICKABLE SELECTION -->
       <div class="medicine-results-container">
         {% for med in medicines %}
-          <a href="{{ url_for('customer.medicine_detail', medicine_id=med.id) }}" class="medicine-result-card" title="Select {{ med.name }}">
+          <a href="{{ url_for('customer.medicine_detail', medicine_id=med.id) }}" class="medicine-result-card">
             <span class="medicine-result-name">{{ med.name }}</span>
-            <i class="fa-solid fa-chevron-right medicine-result-arrow"></i>
           </a>
         {% endfor %}
       </div>

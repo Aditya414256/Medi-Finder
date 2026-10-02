@@ -85,57 +85,84 @@ def search():
     )
 
 
+def _process_store_pickup_order(medicine, user_lat=None, user_lon=None):
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth.login', next=request.url))
+
+    # Find nearest eligible pharmacy with stock and pickup support
+    eligible_pharmacies = LocationService.get_nearby_pharmacies_for_medicine(
+        medicine_id=medicine.id,
+        customer_lat=user_lat,
+        customer_lon=user_lon,
+        max_radius_km=0,
+        only_verified=True,
+        only_available=True,
+        requires_pickup=True,
+        requires_delivery=False,
+        sort_by='nearest'
+    )
+
+    if not eligible_pharmacies:
+        flash("No eligible pharmacy is currently available for store pickup for this medicine.", "warning")
+        return redirect(url_for('customer.medicine_detail', medicine_id=medicine.id))
+
+    # Automatically select the first eligible pharmacy (nearest or deterministic fallback)
+    selected_pharmacy = eligible_pharmacies[0]
+    pharmacy_id = selected_pharmacy['pharmacy_id']
+
+    prescription_id = None
+    if medicine.requires_prescription:
+        user_prescriptions = PrescriptionService.get_prescriptions_for_customer(current_user.id)
+        if user_prescriptions:
+            prescription_id = user_prescriptions[0].id
+        else:
+            flash("A prescription is required for this medicine. Please attach your prescription.", "warning")
+            return redirect(url_for('customer.create_order', pharmacy_id=pharmacy_id, medicine_id=medicine.id, order_type='PICKUP'))
+
+    order, err = OrderService.create_order(
+        customer_id=current_user.id,
+        pharmacy_id=pharmacy_id,
+        order_type='PICKUP',
+        contact_phone=current_user.phone or "+1-555-0100",
+        items_data=[{'medicine_id': medicine.id, 'quantity': 1}],
+        prescription_id=prescription_id,
+        customer_notes="Store pickup order placed via automatic nearest pharmacy selection."
+    )
+
+    if err:
+        flash(err, "danger")
+        return redirect(url_for('customer.medicine_detail', medicine_id=medicine.id))
+
+    flash("Your order has been placed.", "success")
+    return redirect(url_for('customer.order_detail', order_id=order.id))
+
+
 @customer_bp.route('/medicine/<int:medicine_id>')
 def medicine_detail(medicine_id: int):
     medicine = MedicineService.get_medicine_by_id(medicine_id)
     if not medicine:
         abort(404)
 
-    # Fulfillment mode: 'store' (pickup) or 'delivery'
     raw_mode = request.args.get('mode', '').lower().strip()
     mode = raw_mode if raw_mode in ('store', 'delivery') else None
 
-    # Location & filter queries
     user_lat = request.args.get('lat', type=float)
     user_lon = request.args.get('lon', type=float)
-    max_radius = request.args.get('radius', 500.0, type=float)
+
+    if mode == 'store':
+        return _process_store_pickup_order(medicine, user_lat, user_lon)
 
     pharmacies = []
-    if mode == 'store':
+    if mode == 'delivery':
         pharmacies = LocationService.get_nearby_pharmacies_for_medicine(
             medicine_id=medicine.id,
             customer_lat=user_lat,
             customer_lon=user_lon,
-            max_radius_km=max_radius,
-            only_verified=True,
-            only_available=True,
-            requires_pickup=True,
-            requires_delivery=False,
-            sort_by='nearest'
-        )
-    elif mode == 'delivery':
-        pharmacies = LocationService.get_nearby_pharmacies_for_medicine(
-            medicine_id=medicine.id,
-            customer_lat=user_lat,
-            customer_lon=user_lon,
-            max_radius_km=max_radius,
+            max_radius_km=0,
             only_verified=True,
             only_available=True,
             requires_pickup=False,
             requires_delivery=True,
-            sort_by='nearest'
-        )
-    else:
-        # Default fallback if no mode selected yet
-        pharmacies = LocationService.get_nearby_pharmacies_for_medicine(
-            medicine_id=medicine.id,
-            customer_lat=user_lat,
-            customer_lon=user_lon,
-            max_radius_km=max_radius,
-            only_verified=True,
-            only_available=True,
-            requires_pickup=False,
-            requires_delivery=False,
             sort_by='nearest'
         )
 
@@ -147,6 +174,16 @@ def medicine_detail(medicine_id: int):
         user_lat=user_lat,
         user_lon=user_lon
     )
+
+
+@customer_bp.route('/medicine/<int:medicine_id>/store', methods=['GET', 'POST'])
+def medicine_store_order(medicine_id: int):
+    medicine = MedicineService.get_medicine_by_id(medicine_id)
+    if not medicine:
+        abort(404)
+    user_lat = request.args.get('lat', type=float)
+    user_lon = request.args.get('lon', type=float)
+    return _process_store_pickup_order(medicine, user_lat, user_lon)
 
 
 @customer_bp.route('/pharmacy/<int:pharmacy_id>')
@@ -317,7 +354,7 @@ def create_order():
         if err:
             flash(err, 'danger')
         else:
-            flash(f"Order #{order.order_number} placed successfully! The pharmacy will review it shortly.", 'success')
+            flash("Your order has been placed.", 'success')
             return redirect(url_for('customer.order_detail', order_id=order.id))
 
     return render_template(

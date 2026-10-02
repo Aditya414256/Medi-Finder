@@ -32,9 +32,9 @@ def create_app(config_name: str = 'development') -> Flask:
     @app.template_filter('format_currency')
     def filter_format_currency(val):
         try:
-            return f"${float(val):.2f}"
+            return f"₹{float(val):.2f}"
         except (ValueError, TypeError):
-            return "$0.00"
+            return "₹0.00"
 
     @app.context_processor
     def inject_global_vars():

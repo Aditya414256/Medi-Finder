@@ -3,130 +3,89 @@
 
 {% block content %}
 <div style="margin-bottom: 2rem;">
-  <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">
-    {% if query %}
-      Results for "<span style="color: var(--primary);">{{ query }}</span>"
-    {% else %}
-      Medicine Catalog & Discovery
-    {% endif %}
-  </h1>
-  <p style="color: var(--text-muted);">
-    Showing {{ medicines|length }} medicine{{ 's' if medicines|length != 1 else '' }} available across our verified pharmacy network.
-  </p>
-</div>
-
-<div class="search-grid">
-  <!-- Filters Sidebar -->
-  <aside class="filter-card">
-    <div class="filter-title">
-      <span><i class="fa-solid fa-sliders"></i> Filters</span>
-      {% if query or selected_category or rx_filter %}
-        <a href="{{ url_for('customer.search') }}" style="font-size: 0.8rem; color: var(--danger);">Reset All</a>
-      {% endif %}
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+    <div>
+      <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">
+        {% if query %}
+          Results for "<span style="color: var(--primary);">{{ query }}</span>"
+        {% else %}
+          Medicine Catalog & Discovery
+        {% endif %}
+      </h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        Showing {{ medicines|length }} matching medicine{{ 's' if medicines|length != 1 else '' }}. Select any medicine to view nearby pharmacies and stock availability.
+      </p>
     </div>
 
-    <form action="{{ url_for('customer.search') }}" method="GET">
-      <div class="form-group" style="margin-bottom: 1.25rem;">
-        <label class="form-label" for="q">Keyword</label>
-        <input type="text" name="q" id="q" class="form-control" value="{{ query }}" placeholder="Medicine or generic...">
-      </div>
-
-      <div class="filter-group">
-        <label class="group-heading">Prescription Type</label>
-        <label class="filter-option">
-          <input type="radio" name="requires_prescription" value="" {% if not rx_filter %}checked{% endif %}>
-          <span>All Medicines</span>
-        </label>
-        <label class="filter-option">
-          <input type="radio" name="requires_prescription" value="0" {% if rx_filter == '0' %}checked{% endif %}>
-          <span>Over-The-Counter (OTC)</span>
-        </label>
-        <label class="filter-option">
-          <input type="radio" name="requires_prescription" value="1" {% if rx_filter == '1' %}checked{% endif %}>
-          <span>Prescription Only (Rx)</span>
-        </label>
-      </div>
-
-      <div class="filter-group">
-        <label class="group-heading">Category</label>
-        <label class="filter-option">
-          <input type="radio" name="category_id" value="" {% if not selected_category %}checked{% endif %}>
-          <span>All Categories</span>
-        </label>
-        {% for cat in categories %}
-          <label class="filter-option">
-            <input type="radio" name="category_id" value="{{ cat.id }}" {% if selected_category == cat.id %}checked{% endif %}>
-            <span>{{ cat.name }}</span>
-          </label>
-        {% endfor %}
-      </div>
-
-      <button type="submit" class="btn btn-primary btn-sm" style="width: 100%;">
-        <i class="fa-solid fa-filter"></i> Apply Filters
+    <!-- Quick Search Input -->
+    <form action="{{ url_for('customer.search') }}" method="GET" style="display: flex; gap: 0.5rem; min-width: 320px; max-width: 480px; flex: 1;">
+      <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Search medicine or generic name..." style="padding: 0.6rem 1rem;">
+      <button type="submit" class="btn btn-primary" style="white-space: nowrap;">
+        <i class="fa-solid fa-search"></i> Search
       </button>
     </form>
-  </aside>
+  </div>
+</div>
 
-  <!-- Results Column -->
-  <main>
-    {% if medicines %}
-      <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
-        {% for med in medicines %}
-          <div class="card card-hover" style="padding: 1.5rem; display: grid; grid-template-columns: 1fr auto; gap: 1.5rem; align-items: center;">
-            <div>
-              <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.4rem;">
-                <span class="badge badge-secondary">{{ med.dosage_form }}</span>
-                <span class="badge badge-primary">{{ med.strength }}</span>
-                {% if med.requires_prescription %}
-                  <span class="badge badge-warning"><i class="fa-solid fa-prescription"></i> Prescription Required</span>
-                {% else %}
-                  <span class="badge badge-success"><i class="fa-solid fa-shield-check"></i> OTC</span>
-                {% endif %}
-                {% if med.category %}
-                  <span style="font-size: 0.8rem; color: var(--text-subtle);">&bull; {{ med.category.name }}</span>
-                {% endif %}
-              </div>
-
-              <h3 style="font-size: 1.25rem; margin-bottom: 0.25rem;">
-                <a href="{{ url_for('customer.medicine_detail', medicine_id=med.id) }}">{{ med.name }}</a>
-              </h3>
-
-              <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;">
-                <strong>Generic:</strong> {{ med.generic_name }} 
-                {% if med.brand_name %}
-                  <span style="margin-left: 0.5rem;">| <strong>Brands:</strong> {{ med.brand_name }}</span>
-                {% endif %}
-              </div>
-
-              <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
-                {{ med.description }}
-              </div>
-
-              <div style="margin-top: 0.75rem; font-size: 0.82rem; color: var(--accent-dark); font-weight: 600;">
-                <i class="fa-solid fa-store"></i> Found in {{ medicine_stats.get(med.id, {}).get('verified_pharmacies_count', 0) }} verified nearby pharmacies
-              </div>
+<!-- Results List -->
+<main>
+  {% if medicines %}
+    <div style="display: grid; grid-template-columns: 1fr; gap: 1.25rem;">
+      {% for med in medicines %}
+        <div class="card card-hover" style="padding: 1.5rem; display: grid; grid-template-columns: 1fr auto; gap: 1.5rem; align-items: center;">
+          <div>
+            <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.4rem;">
+              <span class="badge badge-secondary">{{ med.dosage_form }}</span>
+              <span class="badge badge-primary">{{ med.strength }}</span>
+              {% if med.requires_prescription %}
+                <span class="badge badge-warning"><i class="fa-solid fa-prescription"></i> Prescription Required</span>
+              {% else %}
+                <span class="badge badge-success"><i class="fa-solid fa-shield-check"></i> OTC</span>
+              {% endif %}
+              {% if med.category %}
+                <span style="font-size: 0.8rem; color: var(--text-subtle);">&bull; {{ med.category.name }}</span>
+              {% endif %}
             </div>
 
-            <div style="text-align: right; min-width: 140px;">
-              <a href="{{ url_for('customer.medicine_detail', medicine_id=med.id) }}" class="btn btn-primary" style="width: 100%;">
-                <i class="fa-solid fa-map-pin"></i> View Stores
-              </a>
+            <h3 style="font-size: 1.35rem; margin-bottom: 0.25rem;">
+              <a href="{{ url_for('customer.medicine_detail', medicine_id=med.id) }}">{{ med.name }}</a>
+            </h3>
+
+            <div style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+              <strong>Generic:</strong> {{ med.generic_name }} 
+              {% if med.brand_name %}
+                <span style="margin-left: 0.5rem;">| <strong>Brands:</strong> {{ med.brand_name }}</span>
+              {% endif %}
+            </div>
+
+            <div style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.45;">
+              {{ med.description }}
+            </div>
+
+            <div style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--accent-dark); font-weight: 600;">
+              <i class="fa-solid fa-store"></i> Found in {{ medicine_stats.get(med.id, {}).get('verified_pharmacies_count', 0) }} verified nearby pharmacies
             </div>
           </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="card" style="text-align: center; padding: 4rem 2rem;">
-        <div style="font-size: 3.5rem; color: var(--text-subtle); margin-bottom: 1rem;">
-          <i class="fa-solid fa-capsules"></i>
+
+          <div style="text-align: right; min-width: 170px;">
+            <a href="{{ url_for('customer.medicine_detail', medicine_id=med.id) }}" class="btn btn-primary" style="width: 100%;">
+              <i class="fa-solid fa-store"></i> View Nearby Stores
+            </a>
+          </div>
         </div>
-        <h3 style="font-size: 1.4rem; margin-bottom: 0.5rem;">No medicines found</h3>
-        <p style="color: var(--text-muted); max-width: 450px; margin: 0 auto 1.5rem;">
-          We couldn't find any medicines matching your search terms or active filters. Try searching by generic name (e.g. Paracetamol, Ibuprofen).
-        </p>
-        <a href="{{ url_for('customer.search') }}" class="btn btn-outline">Clear All Filters</a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card" style="text-align: center; padding: 4rem 2rem;">
+      <div style="font-size: 3.5rem; color: var(--text-subtle); margin-bottom: 1rem;">
+        <i class="fa-solid fa-capsules"></i>
       </div>
-    {% endif %}
-  </main>
-</div>
+      <h3 style="font-size: 1.4rem; margin-bottom: 0.5rem;">No medicines found</h3>
+      <p style="color: var(--text-muted); max-width: 450px; margin: 0 auto 1.5rem;">
+        We couldn't find any medicines matching your search terms. Try searching by generic name (e.g. Paracetamol, Ibuprofen).
+      </p>
+      <a href="{{ url_for('customer.search') }}" class="btn btn-outline">Browse All Medicines</a>
+    </div>
+  {% endif %}
+</main>
 {% endblock %}

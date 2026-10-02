@@ -86,7 +86,7 @@ def medicine_detail(medicine_id: int):
     user_lat = request.args.get('lat', type=float)
     user_lon = request.args.get('lon', type=float)
     max_radius = request.args.get('radius', 50.0, type=float)
-    only_verified = request.args.get('verified', '1') == '1'
+    only_verified = request.args.get('verified', '0') == '1'
     only_available = request.args.get('available', '0') == '1'
     requires_pickup = request.args.get('pickup', '0') == '1'
     requires_delivery = request.args.get('delivery', '0') == '1'
@@ -140,10 +140,35 @@ def pharmacy_detail(pharmacy_id: int):
     )
 
 
+@customer_bp.route('/pharmacies')
 @customer_bp.route('/map')
 def map_view():
-    verified_only = request.args.get('verified', '1') == '1'
-    return render_template('customer/map.html', verified_only=verified_only)
+    user_lat = request.args.get('lat', type=float)
+    user_lon = request.args.get('lon', type=float)
+    max_radius = request.args.get('radius', 50.0, type=float)
+    verified_only = request.args.get('verified', '0') == '1'
+    search_q = request.args.get('q', '').strip()
+
+    pharmacies = LocationService.get_all_nearby_pharmacies(
+        customer_lat=user_lat,
+        customer_lon=user_lon,
+        max_radius_km=max_radius,
+        only_verified=verified_only
+    )
+
+    if search_q:
+        term = search_q.lower()
+        pharmacies = [p for p in pharmacies if term in p['name'].lower() or term in p['city'].lower() or term in p['address'].lower()]
+
+    return render_template(
+        'customer/map.html',
+        pharmacies=pharmacies,
+        user_lat=user_lat,
+        user_lon=user_lon,
+        max_radius=max_radius,
+        verified_only=verified_only,
+        search_q=search_q
+    )
 
 
 @customer_bp.route('/request', methods=['GET', 'POST'])

@@ -11,9 +11,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
-  <!-- Leaflet Map CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-
   <!-- Core App Stylesheet -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   {% block extra_css %}{% endblock %}
@@ -34,7 +31,7 @@
       <ul class="nav-links">
         <li class="nav-item"><a href="{{ url_for('customer.home') }}" class="{% if request.endpoint == 'customer.home' %}active{% endif %}">Home</a></li>
         <li class="nav-item"><a href="{{ url_for('customer.search') }}" class="{% if request.endpoint == 'customer.search' %}active{% endif %}">Find Medicine</a></li>
-        <li class="nav-item"><a href="{{ url_for('customer.map_view') }}" class="{% if request.endpoint == 'customer.map_view' %}active{% endif %}">Pharmacies</a></li>
+        <li class="nav-item"><a href="{{ url_for('customer.map_view') }}" class="{% if request.endpoint == 'customer.map_view' %}active{% endif %}">Nearby Pharmacies</a></li>
         <li class="nav-item"><a href="{{ url_for('customer.home') }}#how-it-works">How It Works</a></li>
         
         {% if current_user.is_authenticated and current_user.is_customer %}
@@ -131,7 +128,7 @@
           <h5>Platform</h5>
           <ul class="footer-links">
             <li><a href="{{ url_for('customer.search') }}">Find Medicines</a></li>
-            <li><a href="{{ url_for('customer.map_view') }}">Pharmacy Locator Map</a></li>
+            <li><a href="{{ url_for('customer.map_view') }}">Nearby Pharmacies</a></li>
             <li><a href="{{ url_for('customer.search', requires_prescription='0') }}">Over-The-Counter (OTC)</a></li>
             <li><a href="{{ url_for('customer.search', requires_prescription='1') }}">Prescription Medicines</a></li>
           </ul>
@@ -159,18 +156,14 @@
       </div>
 
       <div class="footer-bottom">
-        <div>Designed & Engineered with Flask, SQLAlchemy & OpenStreetMap</div>
+        <div>Designed & Engineered with Flask & SQLAlchemy</div>
         <div>Version 2.4-Production</div>
       </div>
     </div>
   </footer>
-
-  <!-- Leaflet Map JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   
   <!-- Main Scripts -->
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/map.js') }}"></script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>

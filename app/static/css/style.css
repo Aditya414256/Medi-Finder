@@ -1133,33 +1133,17 @@ textarea.form-control {
 }
 
 /* ==========================================================================
-   Interactive Map
+   Nearby Pharmacy List Styles
    ========================================================================== */
 
-#map-container {
-  height: 520px;
-  width: 100%;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
-  z-index: 10;
+.nearby-pharmacies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
-.map-popup-card {
-  padding: 0.25rem;
-  max-width: 240px;
-}
-
-.map-popup-title {
-  font-size: 1rem;
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-}
-
-.map-popup-addr {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  margin-bottom: 0.5rem;
+.nearby-pharmacies-list .pharmacy-card {
+  margin-bottom: 0;
 }
 
 /* ==========================================================================

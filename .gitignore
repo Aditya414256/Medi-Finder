@@ -42,3 +42,8 @@ htmlcov/
 .idea/
 *.swp
 *.swo
+
+# Local backups
+BACKENDDDD/
+FRONTENDDDDD/
+BACKENDDDD_ALL_CODE.txt

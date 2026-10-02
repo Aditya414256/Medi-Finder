@@ -100,74 +100,7 @@
   </header>
 
   <!-- Main Search & Browse Area -->
-  <main class="container search-layout">
-    
-    <!-- Left Filter Sidebar -->
-    <aside class="filter-card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
-        <h3 style="font-size:1.15rem; margin:0;"><i class="fa-solid fa-filter text-primary"></i> Filter Medicines</h3>
-        <button type="button" onclick="resetFilters()" style="background:none; border:none; color:var(--primary); font-size:0.8rem; font-weight:700; cursor:pointer;">Reset</button>
-      </div>
-
-      <!-- Search Input in Filter -->
-      <div class="form-group" style="margin-bottom:1.25rem;">
-        <label class="form-label">Search Query</label>
-        <div style="position:relative;">
-          <input type="text" id="filter-query" class="form-control" placeholder="Brand or generic name..." oninput="applyFilters()">
-        </div>
-      </div>
-
-      <!-- Stock Availability Filter -->
-      <div class="form-group" style="margin-bottom:1.25rem;">
-        <label class="form-label">Availability</label>
-        <div style="display:flex; flex-direction:column; gap:0.4rem; font-size:0.88rem;">
-          <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
-            <input type="radio" name="stock-filter" value="ALL" checked onchange="applyFilters()"> All Items
-          </label>
-          <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
-            <input type="radio" name="stock-filter" value="IN_STOCK" onchange="applyFilters()"> In Stock Only
-          </label>
-          <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
-            <input type="radio" name="stock-filter" value="OTC_ONLY" onchange="applyFilters()"> OTC (No Prescription)
-          </label>
-        </div>
-      </div>
-
-      <!-- Category Filter -->
-      <div class="form-group" style="margin-bottom:1.25rem;">
-        <label class="form-label">Category</label>
-        <select id="filter-category" class="form-control" onchange="applyFilters()">
-          <option value="ALL">All Categories</option>
-          <option value="Antibiotics">Antibiotics</option>
-          <option value="Pain Relief & Fever">Pain Relief & Fever</option>
-          <option value="Diabetes Care">Diabetes Care</option>
-          <option value="Cardiovascular">Cardiovascular</option>
-          <option value="Vitamins & Supplements">Vitamins & Supplements</option>
-          <option value="Allergy & Cold">Allergy & Cold</option>
-          <option value="Gastrointestinal">Gastrointestinal</option>
-          <option value="Respiratory">Respiratory</option>
-        </select>
-      </div>
-
-      <!-- Max Price Filter -->
-      <div class="form-group" style="margin-bottom:1.5rem;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem;">
-          <label class="form-label" style="margin-bottom:0;">Max Price</label>
-          <span id="price-val-label" style="font-size:0.85rem; font-weight:700; color:var(--primary);">₹50.00</span>
-        </div>
-        <input type="range" id="filter-price" min="2" max="50" step="1" value="50" style="width:100%; cursor:pointer;" oninput="document.getElementById('price-val-label').textContent = '₹' + parseFloat(this.value).toFixed(2); applyFilters();">
-      </div>
-
-      <!-- Request Medicine Prompt Card -->
-      <div style="background:var(--bg-subtle); padding:1rem; border-radius:var(--radius-md); border:1px dashed var(--border-color); text-align:center;">
-        <i class="fa-solid fa-bullhorn text-warning" style="font-size:1.3rem; margin-bottom:0.4rem;"></i>
-        <h5 style="margin-bottom:0.25rem;">Can't find your medicine?</h5>
-        <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.75rem;">Broadcast a medicine request to all nearby verified pharmacies.</p>
-        <button type="button" class="btn btn-outline btn-sm" style="width:100%; border-color:#f59e0b; color:#d97706;" onclick="MediUI.openModal('request-modal')">
-          Request Medicine
-        </button>
-      </div>
-    </aside>
+  <main class="container">
 
     <!-- Right Results Section -->
     <section>
@@ -212,11 +145,16 @@
     }
 
     function applyFilters() {
-      const q = document.getElementById('filter-query').value.trim().toLowerCase();
-      const cat = document.getElementById('filter-category').value;
-      const maxPrice = parseFloat(document.getElementById('filter-price').value);
-      const stockFilter = document.querySelector('input[name="stock-filter"]:checked').value;
-      const sortBy = document.getElementById('sort-select').value;
+      const qInput = document.getElementById('filter-query');
+      const q = qInput ? qInput.value.trim().toLowerCase() : (getQueryParam('q') || '').trim().toLowerCase();
+      const catEl = document.getElementById('filter-category');
+      const cat = catEl ? catEl.value : 'ALL';
+      const maxPriceEl = document.getElementById('filter-price');
+      const maxPrice = maxPriceEl ? parseFloat(maxPriceEl.value) : 999999;
+      const stockEl = document.querySelector('input[name="stock-filter"]:checked');
+      const stockFilter = stockEl ? stockEl.value : 'ALL';
+      const sortEl = document.getElementById('sort-select');
+      const sortBy = sortEl ? sortEl.value : 'NAME';
 
       const medicines = MediStore.getMedicines();
       const pharmacies = MediStore.getPharmacies();
@@ -290,8 +228,9 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       const initialQuery = getQueryParam('q');
-      if (initialQuery) {
-        document.getElementById('filter-query').value = initialQuery;
+      const qInput = document.getElementById('filter-query');
+      if (initialQuery && qInput) {
+        qInput.value = initialQuery;
       }
       applyFilters();
     });

@@ -8,7 +8,7 @@
 
 1. **Multi-Field Medicine Search Engine**: Search across brand names, generic chemical names, strength, dosage form, and therapeutic categories.
 2. **Mandatory Inventory Timestamps**: Enforces explicit `"Last updated: <timestamp>"` disclosure for every stock record. Never assumes real-time inventory without stored store updates.
-3. **Interactive OpenStreetMap + Leaflet.js**: Real-time geolocation, distance calculation via the Haversine formula, customizable search radii, and verified pharmacy map pins.
+3. **Nearby Pharmacy List & Geolocation Discovery**: Browser geolocation combined with spherical Haversine distance calculation to discover and sort verified pharmacies by proximity (nearest first), displaying clean, lightweight pharmacy cards without map overhead.
 4. **Licensure & Pharmacy Verification Workflow**: Pharmacy stores submit state drug license certificates (`PENDING`); platform administrators audit documents and approve (`APPROVED`) or reject with immutable audit logs.
 5. **Medical Safety & Prescription System**:
    - Secure encrypted document uploads (PDF, PNG, JPG/JPEG).
@@ -22,6 +22,26 @@
 
 ---
 
+## 📍 Nearby-Pharmacy Discovery & Distance Sorting Flow
+
+MediFind employs a clean, fast **Nearby Pharmacy List System** instead of heavy frontend map tiles:
+
+```
+Search Medicine  ──►  Filter Pharmacies by Stock  ──►  Detect User Location  ──►  Calculate Haversine Distance  ──►  Sort Nearest First  ──►  View Pharmacy Profile
+```
+
+1. **Search Medicine**: Customer searches by brand or generic name (e.g. *Paracetamol*).
+2. **Pharmacy Availability Filtering**: MediFind queries `PharmacyInventory` joined with verified `Pharmacy` records to identify licensed stores carrying the medicine.
+3. **Browser Geolocation**: Uses the native HTML5 Geolocation API (`navigator.geolocation`) to securely retrieve user latitude and longitude with user consent, falling back gracefully if permission is denied.
+4. **Haversine Distance Calculation**:
+   $$d = 2R \arcsin\left(\sqrt{\sin^2\left(\frac{\Delta \phi}{2}\right) + \cos(\phi_1)\cos(\phi_2)\sin^2\left(\frac{\Delta \lambda}{2}\right)}\right)$$
+   Computes exact surface distances ($R = 6371\text{ km}$) between the user and each store coordinate.
+5. **Distance Sorting (Nearest First)**: Matching pharmacies are ordered with the nearest store first.
+6. **Pharmacy Cards**: Displays store name, verified status badge, distance from user (e.g. `1.2 km away`), address, medicine stock status, price, mandatory inventory timestamp, pickup/delivery support, and opening hours.
+7. **View Pharmacy**: Opens the dedicated store profile page showing comprehensive pharmacy details and full inventory without map distractions.
+
+---
+
 ## 🏗️ Architecture & Technology Stack
 
 ```
@@ -30,7 +50,7 @@ MediFind Monolith (Modular Blueprint Architecture)
 ├── ORM & Database: SQLAlchemy 2.0 / MySQL (Production) & SQLite (Local Fallback)
 ├── Migrations:     Flask-Migrate / Alembic
 ├── Frontend:       Jinja2 / Custom Healthcare CSS Design System / Modern Typography
-├── Mapping:        Leaflet.js / OpenStreetMap
+├── Proximity:      Browser Geolocation API + Mathematical Haversine Distance Formula
 ├── Security:       Werkzeug Password Hashing, CSRF/XSS Protections, Secure File Vault
 └── Testing:        pytest (100% test pass rate across 21 test suites)
 ```
@@ -83,7 +103,7 @@ pro demo/
 │   │   └── admin/
 │   └── static/
 │       ├── css/style.css           # Custom Healthcare CSS Design System
-│       └── js/                     # Client autocomplete & Leaflet map scripts
+│       └── js/                     # Client autocomplete & geolocation sorting scripts
 ├── tests/                          # Pytest Unit & End-to-End Test Suite
 │   ├── conftest.py
 │   ├── test_auth.py

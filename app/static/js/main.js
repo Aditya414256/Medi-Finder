@@ -15,13 +15,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 5000);
   });
 
-  // 2. Geolocation prompt helper for nearby search
+  // 2. Geolocation prompt helper for nearby search & sorting
   const geoButtons = document.querySelectorAll('[data-action="get-location"]');
   geoButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       if (!navigator.geolocation) {
-        alert("Geolocation is not supported by your browser.");
+        alert("Geolocation is not supported by your browser. You can still browse pharmacies and view store profiles.");
         return;
       }
       const origHtml = btn.innerHTML;
@@ -30,11 +30,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
+          const lat = position.coords.latitude.toFixed(6);
+          const lon = position.coords.longitude.toFixed(6);
           sessionStorage.setItem('user_lat', lat);
           sessionStorage.setItem('user_lon', lon);
           
+          const currentPath = window.location.pathname;
+          // If on home page, navigate to nearby pharmacies list
+          if (currentPath === '/' || currentPath === '') {
+            window.location.href = `/pharmacies?lat=${lat}&lon=${lon}`;
+            return;
+          }
+
+          // Otherwise update current view with coordinates
           const targetUrl = new URL(window.location.href);
           targetUrl.searchParams.set('lat', lat);
           targetUrl.searchParams.set('lon', lon);
@@ -43,12 +51,31 @@ document.addEventListener('DOMContentLoaded', () => {
         (error) => {
           btn.innerHTML = origHtml;
           btn.disabled = false;
-          alert("Unable to retrieve your location. Please check your browser permissions.");
+          let msg = "Location access was not granted. Pharmacies will continue to be displayed. You can still inspect inventory and view pharmacy details.";
+          if (error.code === error.PERMISSION_DENIED) {
+            msg = "Location permission was denied. Pharmacies are listed by availability. You can enable location in browser settings to calculate exact distances.";
+          }
+          alert(msg);
         },
-        { timeout: 10000 }
+        { timeout: 10000, enableHighAccuracy: true }
       );
     });
   });
+
+  // Auto-apply saved session coordinates to medicine and pharmacy pages if not present in query string
+  const currentPath = window.location.pathname;
+  if (currentPath.startsWith('/medicine/') || currentPath === '/pharmacies' || currentPath === '/map') {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has('lat') && !urlParams.has('lon')) {
+      const savedLat = sessionStorage.getItem('user_lat');
+      const savedLon = sessionStorage.getItem('user_lon');
+      if (savedLat && savedLon) {
+        urlParams.set('lat', savedLat);
+        urlParams.set('lon', savedLon);
+        window.location.replace(`${currentPath}?${urlParams.toString()}`);
+      }
+    }
+  }
 
   // 3. Google-like Medicine Autocomplete Engine
   const searchInput = document.getElementById('global-search-input');

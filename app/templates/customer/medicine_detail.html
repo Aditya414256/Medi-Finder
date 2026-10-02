@@ -72,60 +72,44 @@
   </div>
 </div>
 
-<!-- Filter Bar -->
-<div class="card" style="padding: 1rem 1.25rem; margin-bottom: 1.5rem;">
-  <form method="GET" action="{{ url_for('customer.medicine_detail', medicine_id=medicine.id) }}" style="display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: center;">
-    <input type="hidden" name="lat" value="{{ user_lat or '' }}">
-    <input type="hidden" name="lon" value="{{ user_lon or '' }}">
 
-    <div class="form-check" style="margin-bottom: 0;">
-      <input type="checkbox" name="verified" id="f_verified" value="1" {% if only_verified %}checked{% endif %} onchange="this.form.submit()">
-      <label for="f_verified" style="font-size: 0.88rem; font-weight: 600; cursor: pointer;">Verified Pharmacies Only</label>
+<!-- Location & Sorting Status Notice -->
+{% if user_lat and user_lon %}
+  <div class="card" style="padding: 0.85rem 1.25rem; margin-bottom: 1.5rem; background: #f0fdf4; border-color: #bbf7d0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+    <div style="display: flex; align-items: center; gap: 0.6rem; color: #166534; font-size: 0.92rem;">
+      <i class="fa-solid fa-location-dot" style="font-size: 1.1rem;"></i>
+      <span><strong>Showing nearest pharmacies first:</strong> Distances calculated from your location using the Haversine formula.</span>
     </div>
-
-    <div class="form-check" style="margin-bottom: 0;">
-      <input type="checkbox" name="available" id="f_available" value="1" {% if only_available %}checked{% endif %} onchange="this.form.submit()">
-      <label for="f_available" style="font-size: 0.88rem; font-weight: 600; cursor: pointer;">In Stock Only</label>
+    <a href="#" data-action="get-location" class="btn btn-sm btn-outline" style="border-color: #86efac; color: #166534;">
+      <i class="fa-solid fa-location-crosshairs"></i> Refresh Location
+    </a>
+  </div>
+{% else %}
+  <div class="card" style="padding: 0.85rem 1.25rem; margin-bottom: 1.5rem; background: var(--bg-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+    <div style="display: flex; align-items: center; gap: 0.6rem; color: var(--text-muted); font-size: 0.92rem;">
+      <i class="fa-solid fa-location-crosshairs text-primary" style="font-size: 1.1rem;"></i>
+      <span>Share your location to sort matching pharmacies from nearest to farthest and see exact distances.</span>
     </div>
+    <a href="#" data-action="get-location" class="btn btn-sm btn-primary">
+      <i class="fa-solid fa-location-crosshairs"></i> Use My Location
+    </a>
+  </div>
+{% endif %}
 
-    <div class="form-check" style="margin-bottom: 0;">
-      <input type="checkbox" name="pickup" id="f_pickup" value="1" {% if requires_pickup %}checked{% endif %} onchange="this.form.submit()">
-      <label for="f_pickup" style="font-size: 0.88rem; font-weight: 600; cursor: pointer;">Pickup</label>
-    </div>
-
-    <div class="form-check" style="margin-bottom: 0;">
-      <input type="checkbox" name="delivery" id="f_delivery" value="1" {% if requires_delivery %}checked{% endif %} onchange="this.form.submit()">
-      <label for="f_delivery" style="font-size: 0.88rem; font-weight: 600; cursor: pointer;">Home Delivery</label>
-    </div>
-
-    <div style="margin-left: auto; display: flex; align-items: center; gap: 0.5rem;">
-      <label for="sort" style="font-size: 0.88rem; color: var(--text-muted); font-weight: 600;">Sort By:</label>
-      <select name="sort" id="sort" class="form-control" style="width: auto; padding: 0.4rem 0.8rem; font-size: 0.88rem;" onchange="this.form.submit()">
-        <option value="nearest" {% if sort_by == 'nearest' %}selected{% endif %}>Nearest Distance</option>
-        <option value="available" {% if sort_by == 'available' %}selected{% endif %}>Available First</option>
-        <option value="recent" {% if sort_by == 'recent' %}selected{% endif %}>Recently Updated</option>
-      </select>
-    </div>
-  </form>
-</div>
-
-<!-- Map View Container -->
-<div style="margin-bottom: 2rem;">
-  <div id="map-container"></div>
-</div>
-
-<!-- Pharmacy Availability Cards -->
+<!-- Pharmacy Availability List -->
 {% if pharmacies %}
-  <div>
+  <div class="nearby-pharmacies-list">
     {% for p in pharmacies %}
       <div class="pharmacy-card">
         <div class="pharmacy-main-info">
+          <!-- Top Row: Name, Verified Badge, Stock Status Badge -->
           <div class="pharmacy-header">
             <h3 class="pharmacy-title">
               <a href="{{ url_for('customer.pharmacy_detail', pharmacy_id=p.pharmacy_id) }}">{{ p.pharmacy_name }}</a>
             </h3>
+
             {% if p.is_verified %}
-              <span class="verified-badge"><i class="fa-solid fa-shield-check"></i> Verified Pharmacy</span>
+              <span class="verified-badge"><i class="fa-solid fa-shield-check"></i> Verified</span>
             {% else %}
               <span class="unverified-badge"><i class="fa-solid fa-hourglass-half"></i> Verification Pending</span>
             {% endif %}
@@ -134,54 +118,65 @@
               {% if p.stock_status == 'AVAILABLE' %}
                 <i class="fa-solid fa-check"></i> Available ({{ p.quantity }} units)
               {% elif p.stock_status == 'LOW_STOCK' %}
-                <i class="fa-solid fa-triangle-exclamation"></i> Low Stock ({{ p.quantity }} units left)
+                <i class="fa-solid fa-triangle-exclamation"></i> Low Stock ({{ p.quantity }} left)
               {% elif p.stock_status == 'OUT_OF_STOCK' %}
-                <i class="fa-solid fa-circle-xmark"></i> Currently Unavailable
+                <i class="fa-solid fa-circle-xmark"></i> Out of Stock
               {% else %}
                 <i class="fa-solid fa-circle-question"></i> Status Unknown
               {% endif %}
             </span>
           </div>
 
-          <div class="pharmacy-address">
-            <i class="fa-solid fa-location-dot"></i> {{ p.address }}, {{ p.city }} - {{ p.pincode }}
-          </div>
-
-          <div class="pharmacy-meta-row">
-            {% if p.distance_km %}
-              <div class="meta-item highlight">
-                <i class="fa-solid fa-route"></i> <strong>{{ p.distance_km }} km</strong> away
+          <!-- Distance and Address -->
+          <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-top: 0.2rem;">
+            {% if user_lat and user_lon and p.distance_km is not none %}
+              <div class="meta-item highlight" style="font-size: 0.95rem;">
+                <i class="fa-solid fa-route"></i> <strong>{{ p.distance_km }} km away</strong>
               </div>
             {% endif %}
 
+            <div class="pharmacy-address">
+              <i class="fa-solid fa-location-dot"></i> {{ p.address }}, {{ p.city }} - {{ p.pincode }}
+            </div>
+          </div>
+
+          <!-- Detailed Information Grid / Badges -->
+          <div class="pharmacy-meta-row" style="margin-top: 0.6rem;">
             <div class="meta-item">
-              <i class="fa-solid fa-tag"></i> Price: <strong>{{ p.price|format_currency }}</strong>
+              <i class="fa-solid fa-tag text-primary"></i> Price: <strong>{{ p.price|format_currency }}</strong>
+            </div>
+
+            <!-- MANDATORY INVENTORY TIMESTAMP -->
+            <div class="timestamp-badge" title="Stored inventory timestamp from pharmacy">
+              <i class="fa-regular fa-clock"></i>
+              <strong>Last updated:</strong> {{ p.last_updated_human }}
             </div>
 
             <div class="meta-item">
               {% if p.supports_pickup %}
-                <span style="color: var(--accent);"><i class="fa-solid fa-store"></i> Pickup: Yes</span>
+                <span style="color: var(--accent);"><i class="fa-solid fa-store"></i> Pickup: Available</span>
               {% else %}
-                <span style="color: var(--text-subtle);"><i class="fa-solid fa-ban"></i> Pickup: No</span>
+                <span style="color: var(--text-subtle);"><i class="fa-solid fa-ban"></i> Pickup: Not Offered</span>
               {% endif %}
             </div>
 
             <div class="meta-item">
               {% if p.supports_delivery %}
-                <span style="color: var(--accent);"><i class="fa-solid fa-truck"></i> Delivery: Yes (${{ p.delivery_fee|format_currency }})</span>
+                <span style="color: var(--accent);"><i class="fa-solid fa-truck"></i> Home Delivery: Available (Fee: {{ p.delivery_fee|format_currency }})</span>
               {% else %}
-                <span style="color: var(--text-subtle);"><i class="fa-solid fa-ban"></i> Delivery: No</span>
+                <span style="color: var(--text-subtle);"><i class="fa-solid fa-ban"></i> Home Delivery: Not Offered</span>
               {% endif %}
             </div>
 
-            <!-- MANDATORY TIMESTAMP -->
-            <div class="timestamp-badge" title="Stored inventory timestamp from pharmacy">
-              <i class="fa-regular fa-clock"></i>
-              <strong>Last updated:</strong> {{ p.last_updated_human }}
-            </div>
+            {% if p.opening_hours %}
+              <div class="meta-item">
+                <i class="fa-regular fa-calendar-check"></i> Hours: <span>{{ p.opening_hours }}</span>
+              </div>
+            {% endif %}
           </div>
         </div>
 
+        <!-- Action Buttons -->
         <div style="display: flex; flex-direction: column; gap: 0.5rem; min-width: 170px;">
           {% if p.stock_status in ('AVAILABLE', 'LOW_STOCK') %}
             <a href="{{ url_for('customer.create_order', pharmacy_id=p.pharmacy_id, medicine_id=medicine.id) }}" class="btn btn-primary">
@@ -192,8 +187,8 @@
               <i class="fa-solid fa-envelope"></i> Request Stock
             </a>
           {% endif %}
-          <a href="{{ url_for('customer.pharmacy_detail', pharmacy_id=p.pharmacy_id) }}" class="btn btn-sm btn-outline">
-            View Pharmacy Profile
+          <a href="{{ url_for('customer.pharmacy_detail', pharmacy_id=p.pharmacy_id) }}" class="btn btn-outline">
+            <i class="fa-solid fa-hospital"></i> View Pharmacy
           </a>
         </div>
       </div>
@@ -213,23 +208,4 @@
     </a>
   </div>
 {% endif %}
-{% endblock %}
-
-{% block extra_js %}
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const pharmaciesData = {{ pharmacies|tojson }};
-    const userLat = {{ user_lat or 'null' }};
-    const userLon = {{ user_lon or 'null' }};
-
-    initPharmacyMap({
-      pharmacies: pharmaciesData,
-      userLat: userLat,
-      userLon: userLon,
-      initialLat: userLat || (pharmaciesData.length > 0 ? pharmaciesData[0].latitude : 28.6139),
-      initialLon: userLon || (pharmaciesData.length > 0 ? pharmaciesData[0].longitude : 77.2090),
-      initialZoom: 12
-    });
-  });
-</script>
 {% endblock %}

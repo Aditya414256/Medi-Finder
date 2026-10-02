@@ -49,8 +49,8 @@
         <div class="form-group">
           <label class="form-label">Fulfillment Method *</label>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <label style="border: 2px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem;" class="fulfillment-card">
-              <input type="radio" name="order_type" value="PICKUP" checked id="type_pickup">
+            <label style="border: 2px solid {% if selected_order_type == 'PICKUP' %}var(--primary){% else %}var(--border-color){% endif %}; border-radius: var(--radius-md); padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem;" class="fulfillment-card">
+              <input type="radio" name="order_type" value="PICKUP" {% if selected_order_type != 'DELIVERY' %}checked{% endif %} id="type_pickup">
               <div>
                 <strong><i class="fa-solid fa-store text-primary"></i> In-Store Pickup</strong>
                 <div style="font-size: 0.8rem; color: var(--text-muted);">Pick up directly from pharmacy (Free)</div>
@@ -58,8 +58,8 @@
             </label>
 
             {% if pharmacy.supports_delivery %}
-              <label style="border: 2px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem;" class="fulfillment-card">
-                <input type="radio" name="order_type" value="DELIVERY" id="type_delivery">
+              <label style="border: 2px solid {% if selected_order_type == 'DELIVERY' %}var(--accent){% else %}var(--border-color){% endif %}; border-radius: var(--radius-md); padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem;" class="fulfillment-card">
+                <input type="radio" name="order_type" value="DELIVERY" {% if selected_order_type == 'DELIVERY' %}checked{% endif %} id="type_delivery">
                 <div>
                   <strong><i class="fa-solid fa-truck text-accent"></i> Home Delivery</strong>
                   <div style="font-size: 0.8rem; color: var(--text-muted);">Standard delivery fee: {{ pharmacy.delivery_fee|format_currency }}</div>
@@ -74,9 +74,9 @@
           </div>
         </div>
 
-        <div id="delivery-address-group" class="form-group" style="display: none;">
+        <div id="delivery-address-group" class="form-group" style="display: {% if selected_order_type == 'DELIVERY' %}block{% else %}none{% endif %};">
           <label class="form-label" for="delivery_address">Delivery Address *</label>
-          <input type="text" name="delivery_address" id="delivery_address" class="form-control" placeholder="House/Flat No., Street, Landmark, Pincode">
+          <input type="text" name="delivery_address" id="delivery_address" class="form-control" placeholder="House/Flat No., Street, Landmark, Pincode" {% if selected_order_type == 'DELIVERY' %}required{% endif %}>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">

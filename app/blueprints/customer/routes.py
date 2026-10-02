@@ -91,40 +91,61 @@ def medicine_detail(medicine_id: int):
     if not medicine:
         abort(404)
 
+    # Fulfillment mode: 'store' (pickup) or 'delivery'
+    raw_mode = request.args.get('mode', '').lower().strip()
+    mode = raw_mode if raw_mode in ('store', 'delivery') else None
+
     # Location & filter queries
     user_lat = request.args.get('lat', type=float)
     user_lon = request.args.get('lon', type=float)
-    max_radius = request.args.get('radius', 50.0, type=float)
-    only_verified = request.args.get('verified', '0') == '1'
-    only_available = request.args.get('available', '0') == '1'
-    requires_pickup = request.args.get('pickup', '0') == '1'
-    requires_delivery = request.args.get('delivery', '0') == '1'
-    sort_by = request.args.get('sort', 'nearest')
+    max_radius = request.args.get('radius', 500.0, type=float)
 
-    pharmacies = LocationService.get_nearby_pharmacies_for_medicine(
-        medicine_id=medicine.id,
-        customer_lat=user_lat,
-        customer_lon=user_lon,
-        max_radius_km=max_radius,
-        only_verified=only_verified,
-        only_available=only_available,
-        requires_pickup=requires_pickup,
-        requires_delivery=requires_delivery,
-        sort_by=sort_by
-    )
+    pharmacies = []
+    if mode == 'store':
+        pharmacies = LocationService.get_nearby_pharmacies_for_medicine(
+            medicine_id=medicine.id,
+            customer_lat=user_lat,
+            customer_lon=user_lon,
+            max_radius_km=max_radius,
+            only_verified=True,
+            only_available=True,
+            requires_pickup=True,
+            requires_delivery=False,
+            sort_by='nearest'
+        )
+    elif mode == 'delivery':
+        pharmacies = LocationService.get_nearby_pharmacies_for_medicine(
+            medicine_id=medicine.id,
+            customer_lat=user_lat,
+            customer_lon=user_lon,
+            max_radius_km=max_radius,
+            only_verified=True,
+            only_available=True,
+            requires_pickup=False,
+            requires_delivery=True,
+            sort_by='nearest'
+        )
+    else:
+        # Default fallback if no mode selected yet
+        pharmacies = LocationService.get_nearby_pharmacies_for_medicine(
+            medicine_id=medicine.id,
+            customer_lat=user_lat,
+            customer_lon=user_lon,
+            max_radius_km=max_radius,
+            only_verified=True,
+            only_available=True,
+            requires_pickup=False,
+            requires_delivery=False,
+            sort_by='nearest'
+        )
 
     return render_template(
         'customer/medicine_detail.html',
         medicine=medicine,
+        mode=mode,
         pharmacies=pharmacies,
         user_lat=user_lat,
-        user_lon=user_lon,
-        max_radius=max_radius,
-        only_verified=only_verified,
-        only_available=only_available,
-        requires_pickup=requires_pickup,
-        requires_delivery=requires_delivery,
-        sort_by=sort_by
+        user_lon=user_lon
     )
 
 
@@ -237,6 +258,9 @@ def requests_list():
 def create_order():
     pharmacy_id = request.args.get('pharmacy_id', type=int)
     medicine_id = request.args.get('medicine_id', type=int)
+    order_type_param = request.args.get('order_type', 'PICKUP').upper()
+    if order_type_param not in ('PICKUP', 'DELIVERY'):
+        order_type_param = 'PICKUP'
 
     pharmacy = Pharmacy.query.get_or_404(pharmacy_id)
     medicine = Medicine.query.get_or_404(medicine_id)
@@ -248,12 +272,23 @@ def create_order():
     user_prescriptions = PrescriptionService.get_prescriptions_for_customer(current_user.id)
 
     if request.method == 'POST':
-        order_type = request.form.get('order_type', 'PICKUP')
+        order_type = request.form.get('order_type', order_type_param).upper()
         delivery_address = request.form.get('delivery_address', '').strip()
         contact_phone = request.form.get('contact_phone', '').strip() or (current_user.phone or '')
         prescription_id = request.form.get('prescription_id', type=int) or None
         customer_notes = request.form.get('customer_notes', '').strip()
         quantity = request.form.get('quantity', 1, type=int)
+
+        if order_type == 'DELIVERY' and not delivery_address:
+            flash("Delivery address is required for home delivery.", 'danger')
+            return render_template(
+                'customer/order_create.html',
+                pharmacy=pharmacy,
+                medicine=medicine,
+                inventory_item=inventory_item,
+                prescriptions=user_prescriptions,
+                selected_order_type=order_type
+            )
 
         if not contact_phone:
             flash("A valid contact phone number is required.", 'danger')
@@ -262,7 +297,8 @@ def create_order():
                 pharmacy=pharmacy,
                 medicine=medicine,
                 inventory_item=inventory_item,
-                prescriptions=user_prescriptions
+                prescriptions=user_prescriptions,
+                selected_order_type=order_type
             )
 
         items_data = [{'medicine_id': medicine.id, 'quantity': quantity}]
@@ -289,7 +325,8 @@ def create_order():
         pharmacy=pharmacy,
         medicine=medicine,
         inventory_item=inventory_item,
-        prescriptions=user_prescriptions
+        prescriptions=user_prescriptions,
+        selected_order_type=order_type_param
     )
 
 

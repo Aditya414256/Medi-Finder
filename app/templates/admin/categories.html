@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Manage Categories - MediFind Admin{% endblock %}
+
+{% block content %}
+<div class="portal-layout">
+  <!-- Admin Sidebar -->
+  <aside class="portal-sidebar">
+    <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+      <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Admin Console</div>
+      <h3 style="font-size: 1.1rem; color: var(--text-main); margin-top: 0.2rem;">MediFind Platform</h3>
+    </div>
+
+    <ul class="portal-nav">
+      <li class="portal-nav-item"><a href="{{ url_for('admin.dashboard') }}"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.pharmacies') }}"><i class="fa-solid fa-store"></i> Pharmacies</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.medicines') }}"><i class="fa-solid fa-pills"></i> Medicine Catalog</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.categories') }}" class="active"><i class="fa-solid fa-folder-tree"></i> Categories</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.users') }}"><i class="fa-solid fa-users"></i> Users & Roles</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.orders') }}"><i class="fa-solid fa-cart-flatbed"></i> Global Orders</a></li>
+      <li class="portal-nav-item"><a href="{{ url_for('admin.audit_logs') }}"><i class="fa-solid fa-shield-halved"></i> Audit Trail</a></li>
+    </ul>
+  </aside>
+
+  <!-- Categories Content -->
+  <main class="portal-content">
+    <div>
+      <h1 style="font-size: 1.8rem; margin-bottom: 0.25rem;">Therapeutic Medicine Categories</h1>
+      <p style="color: var(--text-muted);">Organize medicines into patient-friendly medical classification groups.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 340px; gap: 2rem;">
+      <!-- Categories Table -->
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Slug</th>
+                <th>Medicines</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cat in categories %}
+                <tr>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                      <i class="fa-solid {{ cat.icon or 'fa-pills' }} text-primary"></i>
+                      <strong>{{ cat.name }}</strong>
+                    </div>
+                  </td>
+                  <td><code>{{ cat.slug }}</code></td>
+                  <td><span class="badge badge-primary">{{ cat.medicines.count() }}</span></td>
+                  <td style="font-size: 0.85rem; color: var(--text-muted);">{{ cat.description }}</td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                    No categories defined yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Add Category Form -->
+      <div class="card" style="box-shadow: var(--shadow-sm);">
+        <div class="card-header">
+          <h3 style="font-size: 1.15rem;"><i class="fa-solid fa-plus-circle text-primary"></i> Add Category</h3>
+        </div>
+        <div class="card-body">
+          <form method="POST" action="{{ url_for('admin.categories') }}">
+            <div class="form-group">
+              <label class="form-label" for="name">Category Name *</label>
+              <input type="text" name="name" id="name" class="form-control" placeholder="e.g. Dermatology & Skin" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="slug">Slug (URL friendly)</label>
+              <input type="text" name="slug" id="slug" class="form-control" placeholder="e.g. dermatology">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="icon">FontAwesome Icon Class</label>
+              <input type="text" name="icon" id="icon" class="form-control" placeholder="fa-hand-dots" value="fa-pills">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="description">Description</label>
+              <textarea name="description" id="description" class="form-control" placeholder="Description of this category..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+              <i class="fa-solid fa-plus"></i> Save Category
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

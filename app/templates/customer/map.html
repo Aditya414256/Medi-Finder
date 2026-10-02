@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% block title %}Nearby Verified Pharmacies - MediFind{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 style="font-size: 2rem; margin-bottom: 0.25rem;">Nearby Verified Pharmacies</h1>
+    <p style="color: var(--text-muted); font-size: 0.92rem;">
+      Find licensed pharmacies near you with real-time distance sorting and complete store profiles.
+    </p>
+  </div>
+
+  <div style="display: flex; gap: 0.75rem; align-items: center;">
+    <button data-action="get-location" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-location-crosshairs"></i> Use My Current Location
+    </button>
+  </div>
+</div>
+
+<!-- Location Status Notice -->
+{% if user_lat and user_lon %}
+  <div class="card" style="padding: 0.85rem 1.25rem; margin-bottom: 1.5rem; background: #f0fdf4; border-color: #bbf7d0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+    <div style="display: flex; align-items: center; gap: 0.6rem; color: #166534; font-size: 0.92rem;">
+      <i class="fa-solid fa-location-dot" style="font-size: 1.1rem;"></i>
+      <span><strong>Location Active:</strong> Matching pharmacies are sorted from nearest to farthest using Haversine distance calculation.</span>
+    </div>
+    <span style="font-size: 0.82rem; color: #15803d; font-weight: 600;">Nearest first</span>
+  </div>
+{% else %}
+  <div class="card" style="padding: 0.85rem 1.25rem; margin-bottom: 1.5rem; background: var(--bg-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+    <div style="display: flex; align-items: center; gap: 0.6rem; color: var(--text-muted); font-size: 0.92rem;">
+      <i class="fa-solid fa-location-crosshairs text-primary" style="font-size: 1.1rem;"></i>
+      <span>Enable browser location to calculate exact distances and sort pharmacies from nearest to farthest.</span>
+    </div>
+    <button data-action="get-location" class="btn btn-sm btn-primary">
+      <i class="fa-solid fa-location-crosshairs"></i> Detect Location
+    </button>
+  </div>
+{% endif %}
+
+<!-- Search Toolbar -->
+<div class="card" style="padding: 1rem 1.25rem; margin-bottom: 1.5rem;">
+  <form method="GET" action="{{ url_for('customer.map_view') }}" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
+    <input type="hidden" name="lat" value="{{ user_lat or '' }}">
+    <input type="hidden" name="lon" value="{{ user_lon or '' }}">
+
+    <div style="display: flex; gap: 0.5rem; flex: 1; max-width: 480px;">
+      <input type="text" name="q" value="{{ search_q }}" placeholder="Search pharmacy name or city..." class="form-control" style="padding: 0.5rem 0.9rem; font-size: 0.9rem;">
+      <button type="submit" class="btn btn-primary btn-sm">Search</button>
+      {% if search_q %}
+        <a href="{{ url_for('customer.map_view') }}" class="btn btn-outline btn-sm">Clear</a>
+      {% endif %}
+    </div>
+
+    <div>
+      <span style="font-size: 0.88rem; color: var(--text-muted);">
+        Found <strong>{{ pharmacies|length }}</strong> store{{ 's' if pharmacies|length != 1 else '' }}
+      </span>
+    </div>
+  </form>
+</div>
+
+<!-- Pharmacies List -->
+{% if pharmacies %}
+  <div class="nearby-pharmacies-list">
+    {% for p in pharmacies %}
+      <div class="pharmacy-card">
+        <div class="pharmacy-main-info">
+          <!-- Top Row: Name & Badges -->
+          <div class="pharmacy-header">
+            <h3 class="pharmacy-title">
+              <a href="{{ url_for('customer.pharmacy_detail', pharmacy_id=p.id) }}">{{ p.name }}</a>
+            </h3>
+
+            {% if p.is_verified %}
+              <span class="verified-badge"><i class="fa-solid fa-shield-check"></i> Verified Pharmacy</span>
+            {% else %}
+              <span class="unverified-badge"><i class="fa-solid fa-hourglass-half"></i> Verification Pending</span>
+            {% endif %}
+          </div>
+
+          <!-- Distance and Address -->
+          <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-top: 0.2rem;">
+            {% if user_lat and user_lon and p.distance_km is not none %}
+              <div class="meta-item highlight" style="font-size: 0.95rem;">
+                <i class="fa-solid fa-route"></i> <strong>{{ p.distance_km }} km away</strong>
+              </div>
+            {% endif %}
+
+            <div class="pharmacy-address">
+              <i class="fa-solid fa-location-dot"></i> {{ p.address }}, {{ p.city }}{% if p.state %}, {{ p.state }}{% endif %} - {{ p.pincode }}
+            </div>
+          </div>
+
+          <!-- Pharmacy Meta Information Row -->
+          <div class="pharmacy-meta-row" style="margin-top: 0.6rem;">
+            {% if p.opening_hours %}
+              <div class="meta-item">
+                <i class="fa-regular fa-clock text-primary"></i> Hours: <span>{{ p.opening_hours }}</span>
+              </div>
+            {% endif %}
+
+            <div class="meta-item">
+              {% if p.supports_pickup %}
+                <span style="color: var(--accent);"><i class="fa-solid fa-store"></i> Store Pickup: Available</span>
+              {% else %}
+                <span style="color: var(--text-subtle);"><i class="fa-solid fa-ban"></i> Store Pickup: Not Offered</span>
+              {% endif %}
+            </div>
+
+            <div class="meta-item">
+              {% if p.supports_delivery %}
+                <span style="color: var(--accent);"><i class="fa-solid fa-truck"></i> Delivery: Available (Fee: {{ p.delivery_fee|format_currency }})</span>
+              {% else %}
+                <span style="color: var(--text-subtle);"><i class="fa-solid fa-ban"></i> Delivery: Not Offered</span>
+              {% endif %}
+            </div>
+
+            <div class="meta-item">
+              <i class="fa-solid fa-boxes-stacked"></i> <span>{{ p.medicine_count }} medicines cataloged</span>
+            </div>
+
+            {% if p.phone %}
+              <div class="meta-item">
+                <i class="fa-solid fa-phone"></i> <span>{{ p.phone }}</span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Action / View Pharmacy -->
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; min-width: 160px; text-align: right;">
+          <a href="{{ url_for('customer.pharmacy_detail', pharmacy_id=p.id) }}" class="btn btn-primary" style="width: 100%;">
+            <i class="fa-solid fa-hospital"></i> View Pharmacy
+          </a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card" style="text-align: center; padding: 3.5rem 1.5rem;">
+    <div style="font-size: 3rem; color: var(--text-subtle); margin-bottom: 0.75rem;">
+      <i class="fa-solid fa-store-slash"></i>
+    </div>
+    <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">No Pharmacies Found</h3>
+    <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 1.5rem;">
+      No registered pharmacies match your current search keyword or filter settings.
+    </p>
+    <a href="{{ url_for('customer.map_view') }}" class="btn btn-outline">Reset Filters</a>
+  </div>
+{% endif %}
+{% endblock %}

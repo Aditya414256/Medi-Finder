@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% block title %}{{ medicine.name }} - Availability & Verified Pharmacies - MediFind{% endblock %}
+
+{% block content %}
+<!-- Medicine Header & Specification Card -->
+<div class="card" style="margin-bottom: 2rem; border-left: 5px solid var(--primary);">
+  <div class="card-body">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.75rem;">
+      <div>
+        <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.4rem;">
+          <span class="badge badge-secondary">{{ medicine.dosage_form }}</span>
+          <span class="badge badge-primary">{{ medicine.strength }}</span>
+          {% if medicine.requires_prescription %}
+            <span class="badge badge-warning"><i class="fa-solid fa-prescription"></i> Prescription Required</span>
+          {% else %}
+            <span class="badge badge-success"><i class="fa-solid fa-shield-check"></i> OTC Medicine</span>
+          {% endif %}
+          {% if medicine.category %}
+            <span style="font-size: 0.85rem; color: var(--text-muted);">&bull; {{ medicine.category.name }}</span>
+          {% endif %}
+        </div>
+        <h1 style="font-size: 2.2rem; margin-bottom: 0.25rem;">{{ medicine.name }}</h1>
+        <div style="font-size: 1.05rem; color: var(--text-muted);">
+          <strong>Generic Name:</strong> {{ medicine.generic_name }}
+          {% if medicine.brand_name %}
+            <span style="margin-left: 0.75rem;">| <strong>Popular Brands:</strong> {{ medicine.brand_name }}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div>
+        <a href="{{ url_for('customer.create_request', medicine_id=medicine.id) }}" class="btn btn-outline">
+          <i class="fa-solid fa-paper-plane"></i> Request Availability
+        </a>
+      </div>
+    </div>
+
+    <p style="color: var(--text-main); font-size: 0.95rem; margin-bottom: 1rem; line-height: 1.5;">
+      {{ medicine.description }}
+    </p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; background: var(--bg-subtle); padding: 1rem; border-radius: var(--radius-md); font-size: 0.88rem;">
+      <div>
+        <strong><i class="fa-solid fa-industry"></i> Manufacturer:</strong><br>
+        <span style="color: var(--text-muted);">{{ medicine.manufacturer or 'Standard Pharmaceutical Grade' }}</span>
+      </div>
+      <div>
+        <strong><i class="fa-solid fa-notes-medical"></i> Usage Advice:</strong><br>
+        <span style="color: var(--text-muted);">{{ medicine.usage_instructions or 'Take as advised by physician or pharmacist.' }}</span>
+      </div>
+      <div>
+        <strong><i class="fa-solid fa-triangle-exclamation text-warning"></i> Safety Warning:</strong><br>
+        <span style="color: var(--text-muted);">{{ medicine.side_effects_warning or 'Follow recommended dosage instructions.' }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Section: Local Pharmacy Availability -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h2 style="font-size: 1.6rem;">Nearby Pharmacies Stocking This Medicine</h2>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">
+      Live store inventories with explicit update timestamps.
+    </p>
+  </div>
+
+  <div style="display: flex; gap: 0.5rem; align-items: center;">
+    <a href="#" data-action="get-location" class="btn btn-sm btn-outline">
+      <i class="fa-solid fa-location-crosshairs"></i> Refresh My Location
+    </a>
+  </div>
+</div>
+
+
+<!-- Location & Sorting Status Notice -->
+{% if user_lat and user_lon %}
+  <div class="card" style="padding: 0.85rem 1.25rem; margin-bottom: 1.5rem; background: #f0fdf4; border-color: #bbf7d0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+    <div style="display: flex; align-items: center; gap: 0.6rem; color: #166534; font-size: 0.92rem;">
+      <i class="fa-solid fa-location-dot" style="font-size: 1.1rem;"></i>
+      <span><strong>Showing nearest pharmacies first:</strong> Distances calculated from your location using the Haversine formula.</span>
+    </div>
+    <a href="#" data-action="get-location" class="btn btn-sm btn-outline" style="border-color: #86efac; color: #166534;">
+      <i class="fa-solid fa-location-crosshairs"></i> Refresh Location
+    </a>
+  </div>
+{% else %}
+  <div class="card" style="padding: 0.85rem 1.25rem; margin-bottom: 1.5rem; background: var(--bg-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+    <div style="display: flex; align-items: center; gap: 0.6rem; color: var(--text-muted); font-size: 0.92rem;">
+      <i class="fa-solid fa-location-crosshairs text-primary" style="font-size: 1.1rem;"></i>
+      <span>Share your location to sort matching pharmacies from nearest to farthest and see exact distances.</span>
+    </div>
+    <a href="#" data-action="get-location" class="btn btn-sm btn-primary">
+      <i class="fa-solid fa-location-crosshairs"></i> Use My Location
+    </a>
+  </div>
+{% endif %}
+
+<!-- Pharmacy Availability List -->
+{% if pharmacies %}
+  <div class="nearby-pharmacies-list">
+    {% for p in pharmacies %}
+      <div class="pharmacy-card">
+        <div class="pharmacy-main-info">
+          <!-- Top Row: Name, Verified Badge, Stock Status Badge -->
+          <div class="pharmacy-header">
+            <h3 class="pharmacy-title">
+              <a href="{{ url_for('customer.pharmacy_detail', pharmacy_id=p.pharmacy_id) }}">{{ p.pharmacy_name }}</a>
+            </h3>
+
+            {% if p.is_verified %}
+              <span class="verified-badge"><i class="fa-solid fa-shield-check"></i> Verified</span>
+            {% else %}
+              <span class="unverified-badge"><i class="fa-solid fa-hourglass-half"></i> Verification Pending</span>
+            {% endif %}
+            
+            <span class="badge {{ p.status_badge_class }}">
+              {% if p.stock_status == 'AVAILABLE' %}
+                <i class="fa-solid fa-check"></i> Available ({{ p.quantity }} units)
+              {% elif p.stock_status == 'LOW_STOCK' %}
+                <i class="fa-solid fa-triangle-exclamation"></i> Low Stock ({{ p.quantity }} left)
+              {% elif p.stock_status == 'OUT_OF_STOCK' %}
+                <i class="fa-solid fa-circle-xmark"></i> Out of Stock
+              {% else %}
+                <i class="fa-solid fa-circle-question"></i> Status Unknown
+              {% endif %}
+            </span>
+          </div>
+
+          <!-- Distance and Address -->
+          <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-top: 0.2rem;">
+            {% if user_lat and user_lon and p.distance_km is not none %}
+              <div class="meta-item highlight" style="font-size: 0.95rem;">
+                <i class="fa-solid fa-route"></i> <strong>{{ p.distance_km }} km away</strong>
+              </div>
+            {% endif %}
+
+            <div class="pharmacy-address">
+              <i class="fa-solid fa-location-dot"></i> {{ p.address }}, {{ p.city }} - {{ p.pincode }}
+            </div>
+          </div>
+
+          <!-- Detailed Information Grid / Badges -->
+          <div class="pharmacy-meta-row" style="margin-top: 0.6rem;">
+            <div class="meta-item">
+              <i class="fa-solid fa-tag text-primary"></i> Price: <strong>{{ p.price|format_currency }}</strong>
+            </div>
+
+            <!-- MANDATORY INVENTORY TIMESTAMP -->
+            <div class="timestamp-badge" title="Stored inventory timestamp from pharmacy">
+              <i class="fa-regular fa-clock"></i>
+              <strong>Last updated:</strong> {{ p.last_updated_human }}
+            </div>
+
+            <div class="meta-item">
+              {% if p.supports_pickup %}
+                <span style="color: var(--accent);"><i class="fa-solid fa-store"></i> Pickup: Available</span>
+              {% else %}
+                <span style="color: var(--text-subtle);"><i class="fa-solid fa-ban"></i> Pickup: Not Offered</span>
+              {% endif %}
+            </div>
+
+            <div class="meta-item">
+              {% if p.supports_delivery %}
+                <span style="color: var(--accent);"><i class="fa-solid fa-truck"></i> Home Delivery: Available (Fee: {{ p.delivery_fee|format_currency }})</span>
+              {% else %}
+                <span style="color: var(--text-subtle);"><i class="fa-solid fa-ban"></i> Home Delivery: Not Offered</span>
+              {% endif %}
+            </div>
+
+            {% if p.opening_hours %}
+              <div class="meta-item">
+                <i class="fa-regular fa-calendar-check"></i> Hours: <span>{{ p.opening_hours }}</span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; min-width: 170px;">
+          {% if p.stock_status in ('AVAILABLE', 'LOW_STOCK') %}
+            <a href="{{ url_for('customer.create_order', pharmacy_id=p.pharmacy_id, medicine_id=medicine.id) }}" class="btn btn-primary">
+              <i class="fa-solid fa-cart-plus"></i> Order Medicine
+            </a>
+          {% else %}
+            <a href="{{ url_for('customer.create_request', pharmacy_id=p.pharmacy_id, medicine_id=medicine.id) }}" class="btn btn-outline">
+              <i class="fa-solid fa-envelope"></i> Request Stock
+            </a>
+          {% endif %}
+          <a href="{{ url_for('customer.pharmacy_detail', pharmacy_id=p.pharmacy_id) }}" class="btn btn-outline">
+            <i class="fa-solid fa-hospital"></i> View Pharmacy
+          </a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+    <div style="font-size: 3rem; color: var(--text-subtle); margin-bottom: 0.75rem;">
+      <i class="fa-solid fa-store-slash"></i>
+    </div>
+    <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">No Pharmacies Match Your Filters</h3>
+    <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 1.5rem;">
+      Try unchecking filters (such as "Verified Only" or "In Stock Only") or submit a direct availability request to nearby stores.
+    </p>
+    <a href="{{ url_for('customer.create_request', medicine_id=medicine.id) }}" class="btn btn-primary">
+      <i class="fa-solid fa-paper-plane"></i> Send Medicine Request to All Nearby Stores
+    </a>
+  </div>
+{% endif %}
+{% endblock %}

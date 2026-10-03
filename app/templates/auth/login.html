@@ -1,55 +1,223 @@
 {% extends 'base.html' %}
 {% block title %}Sign In - MediFind{% endblock %}
 
+{% block extra_css %}
+<style>
+  .Login {
+    min-height: calc(100vh - 72px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    box-sizing: border-box;
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 460px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow:
+      0 20px 25px -5px rgb(0 0 0 / 0.10),
+      0 8px 10px -6px rgb(0 0 0 / 0.10);
+    overflow: hidden;
+  }
+
+  .login-form-container {
+    padding: 30px 28px;
+  }
+
+  .login-form-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 6px;
+  }
+
+  .login-form-subtitle {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.9rem;
+    color: #64748b;
+    margin: 0 0 24px;
+  }
+
+  .login-form-group {
+    margin-bottom: 20px;
+  }
+
+  .login-form-group label {
+    display: block;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 6px;
+  }
+
+  .login-form-group input[type="email"],
+  .login-form-group input[type="password"] {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #ffffff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.9rem;
+    color: #0f172a;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .login-form-group input::placeholder { color: #94a3b8; }
+
+  .login-form-group input:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2,132,199,0.10);
+  }
+
+  .password-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .password-label-row label { margin-bottom: 0; }
+
+  .remember-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 22px;
+  }
+
+  .remember-row input[type="checkbox"] {
+    width: 15px; height: 15px;
+    cursor: pointer;
+    accent-color: #0284c7;
+  }
+
+  .remember-row label {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.85rem;
+    color: #64748b;
+    cursor: pointer;
+  }
+
+  .sign-in-button {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 20px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: #0284c7;
+    color: #ffffff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .sign-in-button:hover {
+    background: #0369a1;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(2,132,199,0.35);
+  }
+
+  .demo-box {
+    margin-top: 18px;
+    padding: 12px 14px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    border: 1px dashed #cbd5e1;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.8rem;
+    color: #64748b;
+    line-height: 1.6;
+  }
+
+  .demo-box strong { display: block; color: #0f172a; margin-bottom: 4px; font-size: 0.82rem; }
+
+  .login-footer {
+    text-align: center;
+    padding: 20px;
+    background: #f1f5f9;
+    border-top: 1px solid #e2e8f0;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.88rem;
+    color: #64748b;
+  }
+
+  .login-footer a {
+    font-weight: 700;
+    color: #0284c7;
+    text-decoration: none;
+  }
+
+  .login-footer a:hover { color: #0369a1; }
+
+  @media (max-width: 500px) {
+    .Login { padding: 30px 15px; }
+    .login-form-container { padding: 25px 20px; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div style="max-width: 460px; margin: 2rem auto;">
-  <div class="card" style="box-shadow: var(--shadow-lg);">
-    <div class="card-header" style="text-align: center; display: block; padding: 2rem 1.5rem 1rem; border-bottom: none; background: #fff;">
-      <div class="brand-icon" style="margin: 0 auto 1rem; width: 48px; height: 48px; font-size: 1.4rem;">
-        <i class="fa-solid fa-lock"></i>
-      </div>
-      <h2 style="font-size: 1.6rem; margin-bottom: 0.35rem;">Welcome to MediFind</h2>
-      <p style="color: var(--text-muted); font-size: 0.9rem;">Sign in to access your prescriptions, pharmacy, or orders.</p>
-    </div>
+<section class="Login">
+  <div class="login-card">
 
-    <div class="card-body" style="padding: 1rem 2rem 2rem;">
+    <div class="login-form-container">
+      <h2 class="login-form-title">Welcome to MediFind</h2>
+      <p class="login-form-subtitle">Sign in to access your prescriptions, pharmacy, or orders.</p>
+
       <form method="POST" action="{{ url_for('auth.login', next=request.args.get('next')) }}">
-        <div class="form-group">
-          <label class="form-label" for="email">Email Address</label>
-          <div style="position: relative;">
-            <input type="email" name="email" id="email" class="form-control" placeholder="name@example.com" required autofocus>
+
+        <!-- Email -->
+        <div class="login-form-group">
+          <label for="email">Email Address</label>
+          <input type="email" name="email" id="email" placeholder="name@example.com" required autofocus>
+        </div>
+
+        <!-- Password -->
+        <div class="login-form-group">
+          <div class="password-label-row">
+            <label for="password">Password</label>
           </div>
+          <input type="password" name="password" id="password" placeholder="••••••••" required>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="password">Password</label>
-          <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
+        <!-- Remember Me -->
+        <div class="remember-row">
+          <input type="checkbox" name="remember" id="remember">
+          <label for="remember">Remember me for 14 days</label>
         </div>
 
-        <div class="form-check" style="margin-bottom: 1.5rem;">
-          <input type="checkbox" name="remember" id="remember" style="cursor: pointer;">
-          <label for="remember" style="font-size: 0.88rem; color: var(--text-muted); cursor: pointer;">Remember me for 14 days</label>
-        </div>
-
-        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
-          <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In
-        </button>
+        <button type="submit" class="sign-in-button">Sign In</button>
       </form>
 
-      <!-- Quick Demo Credentials Box -->
-      <div style="margin-top: 1.75rem; padding: 1rem; background: var(--bg-subtle); border-radius: var(--radius-md); font-size: 0.82rem; border: 1px dashed var(--border-color);">
-        <strong style="display: block; margin-bottom: 0.4rem; color: var(--text-main);"><i class="fa-solid fa-key"></i> Quick Demo Logins:</strong>
-        <div style="color: var(--text-muted); line-height: 1.5;">
-          • <strong>Admin:</strong> <code>admin@medifind.com</code> / <code>Admin@12345</code><br>
-          • <strong>Pharmacy:</strong> <code>apollo@pharmacy.com</code> / <code>Pharmacy@12345</code><br>
-          • <strong>Customer:</strong> <code>customer@medifind.com</code> / <code>Customer@12345</code>
-        </div>
+      <!-- Quick Demo Box -->
+      <div class="demo-box">
+        <strong><i class="fa-solid fa-key"></i> Quick Demo Logins:</strong>
+        • <strong>Admin:</strong> <code>admin@medifind.com</code> / <code>Admin@12345</code><br>
+        • <strong>Pharmacy:</strong> <code>apollo@pharmacy.com</code> / <code>Pharmacy@12345</code><br>
+        • <strong>Customer:</strong> <code>customer@medifind.com</code> / <code>Customer@12345</code>
       </div>
     </div>
 
-    <div class="card-footer" style="text-align: center; font-size: 0.9rem; padding: 1.25rem;">
-      Don't have an account? <a href="{{ url_for('auth.register_customer') }}" style="font-weight: 600;">Sign Up</a> or <a href="{{ url_for('auth.register_pharmacy') }}" style="font-weight: 600; color: var(--accent);">Register Pharmacy</a>
+    <div class="login-footer">
+      Don't have an account?
+      <a href="{{ url_for('auth.register_customer') }}">Sign Up</a>
+      or
+      <a href="{{ url_for('auth.register_pharmacy') }}" style="color:#059669;">Register Pharmacy</a>
     </div>
+
   </div>
-</div>
+</section>
 {% endblock %}

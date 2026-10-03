@@ -18,62 +18,48 @@
 <body>
 
   <!-- Navigation Bar -->
-  <nav class="navbar">
-    <div class="container navbar-inner">
-      <a href="{{ url_for('customer.home') }}" class="brand-logo">
-        <div class="brand-icon">
-          <i class="fa-solid fa-staff-snake"></i>
-        </div>
+  <nav class="mf-navbar">
+    <!-- Section 1: Logo -->
+    <div class="mf-nav-section mf-nav-logo-section">
+      <a href="{{ url_for('customer.home') }}" class="mf-logo">
+        <div class="mf-logo-icon">+</div>
         <span>MediFind</span>
-        <span class="brand-badge">Verified Hub</span>
       </a>
+    </div>
 
-      <ul class="nav-links">
-        <li class="nav-item"><a href="{{ url_for('customer.home') }}" class="{% if request.endpoint == 'customer.home' %}active{% endif %}">Home</a></li>
-        <li class="nav-item"><a href="{{ url_for('customer.map_view') }}" class="{% if request.endpoint == 'customer.map_view' %}active{% endif %}">Pharmacies</a></li>
-        
-        {% if current_user.is_authenticated and current_user.is_customer %}
-          <li class="nav-item"><a href="{{ url_for('customer.orders_list') }}" class="{% if 'orders' in request.endpoint %}active{% endif %}">My Orders</a></li>
-          <li class="nav-item"><a href="{{ url_for('customer.prescriptions') }}" class="{% if 'prescriptions' in request.endpoint %}active{% endif %}">Prescriptions</a></li>
-        {% endif %}
+    <!-- Section 2: Nav Links -->
+    <div class="mf-nav-section mf-nav-links-section">
+      <a href="{{ url_for('customer.home') }}" class="mf-nav-link {% if request.endpoint == 'customer.home' %}mf-nav-active{% endif %}">Home</a>
+      <a href="{{ url_for('customer.map_view') }}" class="mf-nav-link {% if request.endpoint == 'customer.map_view' %}mf-nav-active{% endif %}">Pharmacies</a>
+      {% if current_user.is_authenticated and current_user.is_customer %}
+        <a href="{{ url_for('customer.orders_list') }}" class="mf-nav-link {% if 'orders' in request.endpoint %}mf-nav-active{% endif %}">My Orders</a>
+        <a href="{{ url_for('customer.prescriptions') }}" class="mf-nav-link {% if 'prescriptions' in request.endpoint %}mf-nav-active{% endif %}">Prescriptions</a>
+      {% endif %}
+      {% if current_user.is_authenticated and current_user.is_pharmacy %}
+        <a href="{{ url_for('pharmacy.dashboard') }}" class="mf-nav-link">Pharmacy Portal</a>
+      {% endif %}
+      {% if current_user.is_authenticated and current_user.is_admin %}
+        <a href="{{ url_for('admin.dashboard') }}" class="mf-nav-link">Admin Panel</a>
+      {% endif %}
+    </div>
 
-        {% if current_user.is_authenticated and current_user.is_pharmacy %}
-          <li class="nav-item"><a href="{{ url_for('pharmacy.dashboard') }}" class="btn btn-sm btn-outline">Pharmacy Portal</a></li>
-        {% endif %}
-
-        {% if current_user.is_authenticated and current_user.is_admin %}
-          <li class="nav-item"><a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline">Admin Panel</a></li>
-        {% endif %}
-      </ul>
-
-      <div class="nav-actions">
-        {% if current_user.is_authenticated %}
-          <!-- Notifications Icon -->
-          <a href="{{ url_for('customer.notifications') }}" class="btn btn-outline btn-sm" title="Notifications" style="position: relative;">
-            <i class="fa-regular fa-bell"></i>
-            {% if unread_notifications_count > 0 %}
-              <span style="position: absolute; top: -5px; right: -5px; background: var(--danger); color: #fff; font-size: 0.65rem; font-weight: 800; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">
-                {{ unread_notifications_count }}
-              </span>
-            {% endif %}
-          </a>
-
-          <!-- Profile / Logout Dropdown -->
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <a href="{{ url_for('customer.profile') if current_user.is_customer else (url_for('pharmacy.profile') if current_user.is_pharmacy else url_for('admin.dashboard')) }}" class="btn btn-outline btn-sm">
-              <i class="fa-regular fa-user"></i>
-              <span>{{ current_user.full_name.split()[0] }}</span>
-              <span class="badge badge-secondary" style="font-size: 0.65rem;">{{ current_user.role }}</span>
-            </a>
-            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm" title="Logout">
-              <i class="fa-solid fa-arrow-right-from-bracket"></i>
-            </a>
-          </div>
-        {% else %}
-          <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-sm">Login</a>
-          <a href="{{ url_for('auth.register_choice') }}" class="btn btn-primary btn-sm">Register</a>
-        {% endif %}
-      </div>
+    <!-- Section 3: Auth Actions -->
+    <div class="mf-nav-section mf-nav-actions-section">
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('customer.notifications') }}" class="mf-nav-btn mf-nav-btn-outline" title="Notifications" style="position:relative;">
+          <i class="fa-regular fa-bell"></i>
+          {% if unread_notifications_count > 0 %}
+            <span style="position:absolute;top:-5px;right:-5px;background:#dc2626;color:#fff;font-size:0.62rem;font-weight:800;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;">{{ unread_notifications_count }}</span>
+          {% endif %}
+        </a>
+        <a href="{{ url_for('customer.profile') if current_user.is_customer else (url_for('pharmacy.profile') if current_user.is_pharmacy else url_for('admin.dashboard')) }}" class="mf-nav-btn mf-nav-btn-outline">
+          {{ current_user.full_name.split()[0] }}
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="mf-nav-btn mf-nav-btn-danger">Logout</a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}" class="mf-nav-btn mf-nav-btn-outline">Login</a>
+        <a href="{{ url_for('auth.register_choice') }}" class="mf-nav-btn mf-nav-btn-primary">Register</a>
+      {% endif %}
     </div>
   </nav>
 

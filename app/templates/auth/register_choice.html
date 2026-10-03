@@ -1,64 +1,122 @@
 {% extends 'base.html' %}
-{% block title %}Join MediFind - Choose Account Type{% endblock %}
+{% block title %}Register - MediFind{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================= */
+/* REGISTER PAGE */
+/* ============================= */
+
+.register-page {
+    min-height: calc(100vh - 72px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    box-sizing: border-box;
+}
+
+/* ============================= */
+/* REGISTER OPTIONS */
+/* ============================= */
+
+.register-options {
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* ============================= */
+/* REGISTER BUTTON */
+/* ============================= */
+
+.register-option {
+    width: 100%;
+    display: block;
+    box-sizing: border-box;
+    padding: 18px 24px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+/* ============================= */
+/* CUSTOMER */
+/* ============================= */
+
+.customer-option {
+    background: #0284c7;
+    color: #ffffff;
+}
+
+.customer-option:hover {
+    background: #0369a1;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(2, 132, 199, 0.30);
+    color: #ffffff;
+}
+
+/* ============================= */
+/* PHARMACY */
+/* ============================= */
+
+.pharmacy-option {
+    background: #059669;
+    color: #ffffff;
+}
+
+.pharmacy-option:hover {
+    background: #047857;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.25);
+    color: #ffffff;
+}
+
+/* ============================= */
+/* MOBILE */
+/* ============================= */
+
+@media (max-width: 500px) {
+    .register-page {
+        padding: 30px 15px;
+    }
+
+    .register-option {
+        font-size: 0.9rem;
+        padding: 15px 18px;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div style="max-width: 780px; margin: 2rem auto; text-align: center;">
-  <div class="hero-pill" style="margin-bottom: 1rem;">
-    <i class="fa-solid fa-user-shield"></i> Secure Healthcare Network
-  </div>
-  <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem;">How do you want to use MediFind?</h1>
-  <p style="color: var(--text-muted); font-size: 1.05rem; margin-bottom: 2.5rem;">
-    Choose the account type that best matches your needs.
-  </p>
+<!-- ============================= -->
+<!-- REGISTER OPTIONS -->
+<!-- ============================= -->
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem; text-align: left;">
-    <!-- Option 1: Customer -->
-    <div class="card card-hover" style="border-top: 4px solid var(--primary); display: flex; flex-direction: column; justify-content: space-between; padding: 2rem;">
-      <div>
-        <div style="width: 52px; height: 52px; border-radius: var(--radius-md); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.25rem;">
-          <i class="fa-solid fa-user"></i>
-        </div>
-        <h3 style="font-size: 1.35rem; margin-bottom: 0.5rem; color: var(--text-main);">I'm a Customer / Patient</h3>
-        <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.5; margin-bottom: 1.5rem;">
-          Search medicines across nearby stores, check stock availability timestamps, upload prescriptions safely, and track orders.
-        </p>
-        <ul style="list-style: none; font-size: 0.86rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem;">
-          <li><i class="fa-solid fa-check text-success"></i> Check pharmacy availability timestamps</li>
-          <li><i class="fa-solid fa-check text-success"></i> Save prescription documents</li>
-          <li><i class="fa-solid fa-check text-success"></i> Place pickup and delivery orders</li>
-        </ul>
-      </div>
+<section class="register-page">
+    <div class="register-options">
+        <a
+            href="{{ url_for('auth.register_customer') }}"
+            class="register-option customer-option"
+        >
+            Register as Customer
+        </a>
 
-      <a href="{{ url_for('auth.register_customer') }}" class="btn btn-primary btn-lg" style="width: 100%;">
-        Register as Customer &rarr;
-      </a>
+        <a
+            href="{{ url_for('auth.register_pharmacy') }}"
+            class="register-option pharmacy-option"
+        >
+            Register as Pharmacy
+        </a>
     </div>
-
-    <!-- Option 2: Pharmacy Store Owner -->
-    <div class="card card-hover" style="border-top: 4px solid var(--accent); display: flex; flex-direction: column; justify-content: space-between; padding: 2rem;">
-      <div>
-        <div style="width: 52px; height: 52px; border-radius: var(--radius-md); background: var(--accent-light); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.25rem;">
-          <i class="fa-solid fa-store"></i>
-        </div>
-        <h3 style="font-size: 1.35rem; margin-bottom: 0.5rem; color: var(--text-main);">I'm a Pharmacy Store Owner</h3>
-        <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.5; margin-bottom: 1.5rem;">
-          List your pharmacy store, manage inventory stock, manually verify customer prescriptions, and receive local customer orders.
-        </p>
-        <ul style="list-style: none; font-size: 0.86rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem;">
-          <li><i class="fa-solid fa-check text-success"></i> Get Verified badge for your store</li>
-          <li><i class="fa-solid fa-check text-success"></i> Easy real-time inventory management</li>
-          <li><i class="fa-solid fa-check text-success"></i> Receive customer order requests</li>
-        </ul>
-      </div>
-
-      <a href="{{ url_for('auth.register_pharmacy') }}" class="btn btn-accent btn-lg" style="width: 100%;">
-        Register as Pharmacy &rarr;
-      </a>
-    </div>
-  </div>
-
-  <div style="margin-top: 2.5rem; font-size: 0.92rem; color: var(--text-muted);">
-    Already have an account? <a href="{{ url_for('auth.login') }}" style="font-weight: 600; text-decoration: underline;">Sign in here</a>
-  </div>
-</div>
+</section>
 {% endblock %}

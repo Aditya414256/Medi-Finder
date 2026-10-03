@@ -81,68 +81,7 @@
     </div>
   </main>
 
-  <!-- Footer with Safety & Transparency Disclaimers -->
-  <footer class="app-footer">
-    <div class="container">
-      <!-- Mandatory Transparency Disclaimer -->
-      <div class="disclaimer-banner">
-        <i class="fa-solid fa-shield-halved"></i>
-        <div>
-          <strong>Medical Safety & Inventory Transparency Disclaimer:</strong> MediFind is a discovery and verified pharmacy locator platform. MediFind is <u>NOT</u> a medical diagnostic tool and does not provide clinical decisions. Inventory availability and stock quantities are directly reported by independent licensed pharmacies and show explicit "Last Updated" timestamps. Automated approval of prescriptions is strictly prohibited; all prescription orders are manually verified by qualified licensed pharmacists.
-        </div>
-      </div>
 
-      <div class="footer-grid">
-        <div class="footer-col">
-          <div class="brand-logo" style="margin-bottom: 0.75rem;">
-            <div class="brand-icon" style="width: 32px; height: 32px; font-size: 0.95rem;">
-              <i class="fa-solid fa-staff-snake"></i>
-            </div>
-            <span>MediFind</span>
-          </div>
-          <p style="font-size: 0.88rem; line-height: 1.5; color: var(--text-muted); margin-bottom: 1rem;">
-            Bridging patients with verified licensed pharmacies. Search medicines, inspect stock timestamps, verify licenses, and request pickup or delivery safely.
-          </p>
-          <div style="font-size: 0.8rem; color: var(--text-subtle);">
-            &copy; 2026 MediFind Platform. Built for healthcare transparency.
-          </div>
-        </div>
-
-        <div class="footer-col">
-          <h5>Platform</h5>
-          <ul class="footer-links">
-            <li><a href="{{ url_for('customer.home') }}">Find Medicines</a></li>
-            <li><a href="{{ url_for('customer.map_view') }}">Nearby Pharmacies</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col">
-          <h5>Pharmacies</h5>
-          <ul class="footer-links">
-            <li><a href="{{ url_for('auth.register_pharmacy') }}">Register Pharmacy</a></li>
-            <li><a href="{{ url_for('pharmacy.verification') }}">Verification Guidelines</a></li>
-            <li><a href="{{ url_for('pharmacy.inventory') }}">Inventory Management</a></li>
-            <li><a href="{{ url_for('auth.login') }}">Partner Portal Sign In</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-col">
-          <h5>Security & Trust</h5>
-          <ul class="footer-links">
-            <li><i class="fa-solid fa-check text-success"></i> 100% Manual Rx Verification</li>
-            <li><i class="fa-solid fa-check text-success"></i> State Licensure Auditing</li>
-            <li><i class="fa-solid fa-check text-success"></i> Explicit Timestamp Disclosure</li>
-            <li><i class="fa-solid fa-check text-success"></i> Encrypted Document Vault</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="footer-bottom">
-        <div>Designed & Engineered with Flask & SQLAlchemy</div>
-        <div>Version 2.4-Production</div>
-      </div>
-    </div>
-  </footer>
   
   <!-- Main Scripts -->
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>

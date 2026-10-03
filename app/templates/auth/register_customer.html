@@ -1,53 +1,300 @@
 {% extends 'base.html' %}
 {% block title %}Customer Sign Up - MediFind{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ============================= */
+/* CUSTOMER REGISTRATION PAGE */
+/* ============================= */
+
+.customer-register-page {
+    width: 100%;
+    min-height: calc(100vh - 72px);
+    padding: 2rem 1.5rem 3rem;
+    box-sizing: border-box;
+}
+
+.customer-register-container {
+    max-width: 500px;
+    margin: 2rem auto;
+}
+
+.customer-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg, 18px);
+    box-shadow:
+        0 10px 15px -3px rgb(0 0 0 / 0.08),
+        0 4px 6px -4px rgb(0 0 0 / 0.08);
+    overflow: hidden;
+}
+
+.customer-card-header {
+    text-align: center;
+    display: block;
+    padding: 2rem 1.5rem 1rem;
+    border-bottom: none;
+    background: #ffffff;
+}
+
+.customer-brand-icon {
+    margin: 0 auto 1rem;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #ffffff;
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    border-radius: var(--radius-md, 12px);
+    box-shadow: 0 4px 10px rgba(2, 132, 199, 0.30);
+}
+
+.customer-card-header h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-main, #0f172a);
+    margin: 0 0 0.35rem;
+}
+
+.customer-card-header p {
+    color: var(--text-muted, #64748b);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.customer-card-body {
+    padding: 1rem 2rem 2rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main, #0f172a);
+    margin-bottom: 0.35rem;
+}
+
+.form-control {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.92rem;
+    font-family: inherit;
+    color: var(--text-main, #0f172a);
+    background: #ffffff;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 12px);
+    outline: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-control::placeholder {
+    color: var(--text-subtle, #94a3b8);
+}
+
+.form-control:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.customer-register-button {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.85rem 1.75rem;
+    font-family: inherit;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md, 12px);
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.customer-register-button:hover {
+    background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35);
+}
+
+.customer-card-footer {
+    text-align: center;
+    font-size: 0.9rem;
+    padding: 1.25rem;
+    background: #ffffff;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+    color: var(--text-muted, #64748b);
+}
+
+.customer-card-footer a {
+    color: #0284c7;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.customer-card-footer a:hover {
+    color: #0369a1;
+}
+
+@media (max-width: 500px) {
+    .customer-register-page {
+        padding: 1.5rem 15px 2rem;
+    }
+
+    .customer-register-container {
+        margin: 1.5rem auto;
+    }
+
+    .customer-card-header {
+        padding: 1.75rem 1.25rem 1rem;
+    }
+
+    .customer-card-body {
+        padding: 1rem 1.25rem 1.5rem;
+    }
+
+    .customer-card-header h2 {
+        font-size: 1.4rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div style="max-width: 500px; margin: 2rem auto;">
-  <div class="card" style="box-shadow: var(--shadow-lg);">
-    <div class="card-header" style="text-align: center; display: block; padding: 2rem 1.5rem 1rem; border-bottom: none; background: #fff;">
-      <div class="brand-icon" style="margin: 0 auto 1rem; width: 48px; height: 48px; font-size: 1.4rem;">
-        <i class="fa-solid fa-user-plus"></i>
-      </div>
-      <h2 style="font-size: 1.6rem; margin-bottom: 0.35rem;">Create Customer Account</h2>
-      <p style="color: var(--text-muted); font-size: 0.9rem;">Find nearby medicines, upload prescriptions, and place orders.</p>
+<!-- ============================= -->
+<!-- CUSTOMER REGISTRATION -->
+<!-- ============================= -->
+
+<main class="customer-register-page">
+    <div class="customer-register-container">
+        <div class="customer-card">
+
+            <!-- HEADER -->
+            <div class="customer-card-header">
+                <div class="customer-brand-icon">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <h2>Create Customer Account</h2>
+                <p>Find nearby medicines, upload prescriptions, and place orders.</p>
+            </div>
+
+            <!-- FORM -->
+            <div class="customer-card-body">
+                <form method="POST" action="{{ url_for('auth.register_customer') }}">
+
+                    <!-- FULL NAME -->
+                    <div class="form-group">
+                        <label class="form-label" for="full_name">
+                            Full Name *
+                        </label>
+                        <input
+                            type="text"
+                            name="full_name"
+                            id="full_name"
+                            class="form-control"
+                            placeholder=""
+                            value="{{ form_data.get('full_name', '') }}"
+                            required
+                            autofocus
+                        >
+                    </div>
+
+                    <!-- EMAIL -->
+                    <div class="form-group">
+                        <label class="form-label" for="email">
+                            Email Address *
+                        </label>
+                        <input
+                            type="email"
+                            name="email"
+                            id="email"
+                            class="form-control"
+                            placeholder=""
+                            value="{{ form_data.get('email', '') }}"
+                            required
+                        >
+                    </div>
+
+                    <!-- PHONE -->
+                    <div class="form-group">
+                        <label class="form-label" for="phone">
+                            Phone Number
+                        </label>
+                        <input
+                            type="tel"
+                            name="phone"
+                            id="phone"
+                            class="form-control"
+                            placeholder=""
+                            value="{{ form_data.get('phone', '') }}"
+                        >
+                    </div>
+
+                    <!-- PASSWORD -->
+                    <div class="form-group">
+                        <label class="form-label" for="password">
+                            Password *
+                        </label>
+                        <input
+                            type="password"
+                            name="password"
+                            id="password"
+                            class="form-control"
+                            placeholder=""
+                            required
+                            minlength="6"
+                        >
+                    </div>
+
+                    <!-- CONFIRM PASSWORD -->
+                    <div class="form-group">
+                        <label class="form-label" for="confirm_password">
+                            Confirm Password *
+                        </label>
+                        <input
+                            type="password"
+                            name="confirm_password"
+                            id="confirm_password"
+                            class="form-control"
+                            placeholder=""
+                            required
+                            minlength="6"
+                        >
+                    </div>
+
+                    <!-- REGISTER -->
+                    <button
+                        type="submit"
+                        class="customer-register-button"
+                    >
+                        <i class="fa-solid fa-check"></i>
+                        Register Account
+                    </button>
+
+                </form>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="customer-card-footer">
+                Already have an account?
+                <a href="{{ url_for('auth.login') }}">
+                    Sign In
+                </a>
+            </div>
+
+        </div>
     </div>
-
-    <div class="card-body" style="padding: 1rem 2rem 2rem;">
-      <form method="POST" action="{{ url_for('auth.register_customer') }}">
-        <div class="form-group">
-          <label class="form-label" for="full_name">Full Name *</label>
-          <input type="text" name="full_name" id="full_name" class="form-control" placeholder="John Doe" value="{{ form_data.get('full_name', '') }}" required autofocus>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="email">Email Address *</label>
-          <input type="email" name="email" id="email" class="form-control" placeholder="john@example.com" value="{{ form_data.get('email', '') }}" required>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="phone">Phone Number</label>
-          <input type="tel" name="phone" id="phone" class="form-control" placeholder="+1 555-0199" value="{{ form_data.get('phone', '') }}">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="password">Password *</label>
-          <input type="password" name="password" id="password" class="form-control" placeholder="At least 6 characters" required minlength="6">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="confirm_password">Confirm Password *</label>
-          <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="Repeat password" required minlength="6">
-        </div>
-
-        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 0.5rem;">
-          <i class="fa-solid fa-check"></i> Register Account
-        </button>
-      </form>
-    </div>
-
-    <div class="card-footer" style="text-align: center; font-size: 0.9rem; padding: 1.25rem;">
-      Already have an account? <a href="{{ url_for('auth.login') }}" style="font-weight: 600;">Sign In</a>
-    </div>
-  </div>
-</div>
+</main>
 {% endblock %}

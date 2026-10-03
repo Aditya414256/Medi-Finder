@@ -1,115 +1,558 @@
 {% extends 'base.html' %}
 {% block title %}Pharmacy Registration - MediFind{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ============================= */
+/* PHARMACY REGISTRATION PAGE */
+/* ============================= */
+
+.pharmacy-register-page {
+    width: 100%;
+    min-height: calc(100vh - 72px);
+    padding: 2rem 1.5rem 3rem;
+    box-sizing: border-box;
+}
+
+.pharmacy-register-container {
+    max-width: 680px;
+    margin: 2rem auto;
+}
+
+.pharmacy-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-lg, 18px);
+    box-shadow:
+        0 10px 15px -3px rgb(0 0 0 / 0.08),
+        0 4px 6px -4px rgb(0 0 0 / 0.08);
+    overflow: hidden;
+}
+
+.pharmacy-card-header {
+    text-align: center;
+    display: block;
+    padding: 2rem 1.5rem 1rem;
+    border-bottom: none;
+    background: #ffffff;
+}
+
+.pharmacy-brand-icon {
+    margin: 0 auto 1rem;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #ffffff;
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    border-radius: var(--radius-md, 12px);
+    box-shadow: 0 4px 10px rgba(5, 150, 105, 0.25);
+}
+
+.pharmacy-card-header h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-main, #0f172a);
+    margin: 0 0 0.35rem;
+}
+
+.pharmacy-card-header p {
+    color: var(--text-muted, #64748b);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.pharmacy-card-body {
+    padding: 1rem 2rem 2rem;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    margin: 0 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+
+.owner-title {
+    color: var(--primary, #0284c7);
+}
+
+.pharmacy-title {
+    color: #059669;
+    margin: 1.5rem 0 1rem;
+}
+
+.two-column {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.three-column {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main, #0f172a);
+    margin-bottom: 0.35rem;
+}
+
+.form-control {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.92rem;
+    font-family: inherit;
+    color: var(--text-main, #0f172a);
+    background: #ffffff;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 12px);
+    outline: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-control::placeholder {
+    color: var(--text-subtle, #94a3b8);
+}
+
+.form-control:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.service-options {
+    display: flex;
+    gap: 2rem;
+    margin: 1rem 0 1.5rem;
+}
+
+.service-option {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-main, #0f172a);
+    cursor: pointer;
+}
+
+.service-option input {
+    cursor: pointer;
+    accent-color: #059669;
+}
+
+.verification-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    background: #f1f5f9;
+    padding: 1rem;
+    border-radius: var(--radius-md, 12px);
+    font-size: 0.85rem;
+    color: var(--text-muted, #64748b);
+    margin-bottom: 1.5rem;
+}
+
+.verification-note > i {
+    color: #0284c7;
+    margin-top: 0.15rem;
+}
+
+.pharmacy-register-button {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.75rem;
+    font-family: inherit;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md, 12px);
+    background: #059669;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pharmacy-register-button:hover {
+    background: #047857;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.25);
+}
+
+.pharmacy-card-footer {
+    text-align: center;
+    font-size: 0.9rem;
+    padding: 1.25rem;
+    background: #ffffff;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+    color: var(--text-muted, #64748b);
+}
+
+.pharmacy-card-footer a {
+    color: #0284c7;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.pharmacy-card-footer a:hover {
+    color: #0369a1;
+}
+
+@media (max-width: 700px) {
+    .pharmacy-register-page {
+        padding: 1.5rem 18px 2.5rem;
+    }
+
+    .pharmacy-register-container {
+        margin: 1.5rem auto;
+    }
+
+    .two-column,
+    .three-column {
+        grid-template-columns: 1fr;
+    }
+
+    .service-options {
+        flex-direction: column;
+        gap: 0.7rem;
+    }
+}
+
+@media (max-width: 500px) {
+    .pharmacy-register-page {
+        padding: 1.25rem 15px 2rem;
+    }
+
+    .pharmacy-card-header {
+        padding: 1.75rem 1.25rem 1rem;
+    }
+
+    .pharmacy-card-body {
+        padding: 1rem 1.25rem 1.5rem;
+    }
+
+    .pharmacy-card-header h2 {
+        font-size: 1.4rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div style="max-width: 680px; margin: 2rem auto;">
-  <div class="card" style="box-shadow: var(--shadow-lg);">
-    <div class="card-header" style="text-align: center; display: block; padding: 2rem 1.5rem 1rem; border-bottom: none; background: #fff;">
-      <div class="brand-icon" style="margin: 0 auto 1rem; width: 48px; height: 48px; font-size: 1.4rem; background: linear-gradient(135deg, var(--accent) 0%, #10b981 100%);">
-        <i class="fa-solid fa-store"></i>
-      </div>
-      <h2 style="font-size: 1.6rem; margin-bottom: 0.35rem;">Register Your Pharmacy</h2>
-      <p style="color: var(--text-muted); font-size: 0.9rem;">Join the verified MediFind network to manage inventory and serve local customers.</p>
+<!-- ============================= -->
+<!-- PHARMACY REGISTRATION -->
+<!-- ============================= -->
+
+<main class="pharmacy-register-page">
+    <div class="pharmacy-register-container">
+        <div class="pharmacy-card">
+
+            <!-- HEADER -->
+            <div class="pharmacy-card-header">
+                <div class="pharmacy-brand-icon">
+                    <i class="fa-solid fa-store"></i>
+                </div>
+                <h2>Register Your Pharmacy</h2>
+                <p>Join the verified MediFind network to manage inventory and serve local customers.</p>
+            </div>
+
+            <!-- FORM BODY -->
+            <div class="pharmacy-card-body">
+                <form method="POST" action="{{ url_for('auth.register_pharmacy') }}">
+
+                    <!-- ============================= -->
+                    <!-- OWNER ACCOUNT -->
+                    <!-- ============================= -->
+                    <h4 class="section-title owner-title">
+                        <i class="fa-solid fa-user"></i>
+                        Pharmacy Owner Account
+                    </h4>
+
+                    <div class="two-column">
+                        <div class="form-group">
+                            <label class="form-label" for="full_name">
+                                Owner Full Name *
+                            </label>
+                            <input
+                                type="text"
+                                name="full_name"
+                                id="full_name"
+                                class="form-control"
+                                placeholder=""
+                                value="{{ form_data.get('full_name', '') }}"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="email">
+                                Account Email *
+                            </label>
+                            <input
+                                type="email"
+                                name="email"
+                                id="email"
+                                class="form-control"
+                                placeholder=""
+                                value="{{ form_data.get('email', '') }}"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="two-column">
+                        <div class="form-group">
+                            <label class="form-label" for="password">
+                                Password *
+                            </label>
+                            <input
+                                type="password"
+                                name="password"
+                                id="password"
+                                class="form-control"
+                                placeholder=""
+                                required
+                                minlength="6"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="confirm_password">
+                                Confirm Password *
+                            </label>
+                            <input
+                                type="password"
+                                name="confirm_password"
+                                id="confirm_password"
+                                class="form-control"
+                                placeholder=""
+                                required
+                                minlength="6"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- ============================= -->
+                    <!-- PHARMACY DETAILS -->
+                    <!-- ============================= -->
+                    <h4 class="section-title pharmacy-title">
+                        <i class="fa-solid fa-prescription-bottle-medical"></i>
+                        Pharmacy & Licensure Details
+                    </h4>
+
+                    <div class="two-column">
+                        <div class="form-group">
+                            <label class="form-label" for="pharmacy_name">
+                                Pharmacy Store Name *
+                            </label>
+                            <input
+                                type="text"
+                                name="pharmacy_name"
+                                id="pharmacy_name"
+                                class="form-control"
+                                placeholder=""
+                                value="{{ form_data.get('pharmacy_name', '') }}"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="license_number">
+                                Drug License / Registration No. *
+                            </label>
+                            <input
+                                type="text"
+                                name="license_number"
+                                id="license_number"
+                                class="form-control"
+                                placeholder="DL-2024-XXXX-XXXX"
+                                value="{{ form_data.get('license_number', '') }}"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <!-- ============================= -->
+                    <!-- PHARMACY PHONE & EMAIL -->
+                    <!-- ============================= -->
+                    <div class="two-column">
+                        <div class="form-group">
+                            <label class="form-label" for="pharmacy_phone">
+                                Pharmacy Phone Number
+                            </label>
+                            <input
+                                type="tel"
+                                name="pharmacy_phone"
+                                id="pharmacy_phone"
+                                class="form-control"
+                                placeholder=""
+                                value="{{ form_data.get('pharmacy_phone', '') }}"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="pharmacy_email">
+                                Pharmacy Email
+                            </label>
+                            <input
+                                type="email"
+                                name="pharmacy_email"
+                                id="pharmacy_email"
+                                class="form-control"
+                                placeholder=""
+                                value="{{ form_data.get('pharmacy_email', '') }}"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- ============================= -->
+                    <!-- ADDRESS -->
+                    <!-- ============================= -->
+                    <div class="form-group">
+                        <label class="form-label" for="address">
+                            Street Address *
+                        </label>
+                        <input
+                            type="text"
+                            name="address"
+                            id="address"
+                            class="form-control"
+                            placeholder=""
+                            value="{{ form_data.get('address', '') }}"
+                            required
+                        >
+                    </div>
+
+                    <!-- ============================= -->
+                    <!-- CITY / STATE / PINCODE -->
+                    <!-- ============================= -->
+                    <div class="three-column">
+                        <div class="form-group">
+                            <label class="form-label" for="city">
+                                City *
+                            </label>
+                            <input
+                                type="text"
+                                name="city"
+                                id="city"
+                                class="form-control"
+                                placeholder=""
+                                value="{{ form_data.get('city', '') }}"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="state">
+                                State *
+                            </label>
+                            <input
+                                type="text"
+                                name="state"
+                                id="state"
+                                class="form-control"
+                                placeholder=""
+                                value="{{ form_data.get('state', '') }}"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="pincode">
+                                Pincode / Postal *
+                            </label>
+                            <input
+                                type="text"
+                                name="pincode"
+                                id="pincode"
+                                class="form-control"
+                                placeholder=""
+                                value="{{ form_data.get('pincode', '') }}"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Hidden coordinates -->
+                    <input type="hidden" name="latitude" value="{{ form_data.get('latitude', '28.6139') }}">
+                    <input type="hidden" name="longitude" value="{{ form_data.get('longitude', '77.2090') }}">
+
+                    <!-- ============================= -->
+                    <!-- SERVICES -->
+                    <!-- ============================= -->
+                    <div class="service-options">
+                        <label class="service-option">
+                            <input
+                                type="checkbox"
+                                name="supports_pickup"
+                                id="supports_pickup"
+                                checked
+                            >
+                            <span>
+                                Store Pickup Supported
+                            </span>
+                        </label>
+
+                        <label class="service-option">
+                            <input
+                                type="checkbox"
+                                name="supports_delivery"
+                                id="supports_delivery"
+                            >
+                            <span>
+                                Home Delivery Supported
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- VERIFICATION NOTE -->
+                    <div class="verification-note">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>After registration, you will be prompted to upload state drug license certificates to complete activation.</span>
+                    </div>
+
+                    <!-- ============================= -->
+                    <!-- REGISTER -->
+                    <!-- ============================= -->
+                    <button
+                        type="submit"
+                        class="pharmacy-register-button"
+                    >
+                        <i class="fa-solid fa-store"></i>
+                        Register & Proceed to Verification
+                    </button>
+
+                </form>
+            </div>
+
+            <!-- ============================= -->
+            <!-- FOOTER -->
+            <!-- ============================= -->
+            <div class="pharmacy-card-footer">
+                Already registered?
+                <a href="{{ url_for('auth.login') }}">
+                    Sign In Here
+                </a>
+            </div>
+
+        </div>
     </div>
-
-    <div class="card-body" style="padding: 1rem 2rem 2rem;">
-      <form method="POST" action="{{ url_for('auth.register_pharmacy') }}">
-        <h4 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
-          <i class="fa-solid fa-user"></i> Pharmacy Owner Account
-        </h4>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div class="form-group">
-            <label class="form-label" for="full_name">Owner Full Name *</label>
-            <input type="text" name="full_name" id="full_name" class="form-control" placeholder="Dr. Jane Smith" value="{{ form_data.get('full_name', '') }}" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="email">Account Email *</label>
-            <input type="email" name="email" id="email" class="form-control" placeholder="owner@pharmacy.com" value="{{ form_data.get('email', '') }}" required>
-          </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div class="form-group">
-            <label class="form-label" for="password">Password *</label>
-            <input type="password" name="password" id="password" class="form-control" placeholder="At least 6 characters" required minlength="6">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="confirm_password">Confirm Password *</label>
-            <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="Repeat password" required minlength="6">
-          </div>
-        </div>
-
-        <h4 style="font-size: 1.1rem; margin: 1.5rem 0 1rem; color: var(--accent); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
-          <i class="fa-solid fa-prescription-bottle-medical"></i> Pharmacy & Licensure Details
-        </h4>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div class="form-group">
-            <label class="form-label" for="pharmacy_name">Pharmacy Store Name *</label>
-            <input type="text" name="pharmacy_name" id="pharmacy_name" class="form-control" placeholder="Downtown Care Pharmacy" value="{{ form_data.get('pharmacy_name', '') }}" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="license_number">Drug License / Registration No. *</label>
-            <input type="text" name="license_number" id="license_number" class="form-control" placeholder="DL-2024-XXXX-XXXX" value="{{ form_data.get('license_number', '') }}" required>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="address">Street Address *</label>
-          <input type="text" name="address" id="address" class="form-control" placeholder="123 Health Ave, Suite 100" value="{{ form_data.get('address', '') }}" required>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 1rem;">
-          <div class="form-group">
-            <label class="form-label" for="city">City *</label>
-            <input type="text" name="city" id="city" class="form-control" placeholder="City" value="{{ form_data.get('city', '') }}" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="state">State *</label>
-            <input type="text" name="state" id="state" class="form-control" placeholder="State" value="{{ form_data.get('state', '') }}" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="pincode">Pincode / Postal *</label>
-            <input type="text" name="pincode" id="pincode" class="form-control" placeholder="100001" value="{{ form_data.get('pincode', '') }}" required>
-          </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div class="form-group">
-            <label class="form-label" for="latitude">Latitude (approx)</label>
-            <input type="number" step="any" name="latitude" id="latitude" class="form-control" placeholder="28.6139" value="{{ form_data.get('latitude', '28.6139') }}">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="longitude">Longitude (approx)</label>
-            <input type="number" step="any" name="longitude" id="longitude" class="form-control" placeholder="77.2090" value="{{ form_data.get('longitude', '77.2090') }}">
-          </div>
-        </div>
-
-        <div style="display: flex; gap: 2rem; margin: 1rem 0 1.5rem;">
-          <div class="form-check">
-            <input type="checkbox" name="supports_pickup" id="supports_pickup" checked style="cursor: pointer;">
-            <label for="supports_pickup" style="font-size: 0.9rem; font-weight: 600; cursor: pointer;">Store Pickup Supported</label>
-          </div>
-          <div class="form-check">
-            <input type="checkbox" name="supports_delivery" id="supports_delivery" style="cursor: pointer;">
-            <label for="supports_delivery" style="font-size: 0.9rem; font-weight: 600; cursor: pointer;">Home Delivery Supported</label>
-          </div>
-        </div>
-
-        <div style="background: var(--bg-subtle); padding: 1rem; border-radius: var(--radius-md); font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
-          <i class="fa-solid fa-circle-info text-primary"></i> <strong>Note on Verification:</strong> After registration, you will be prompted to upload state drug license certificates. Your pharmacy will be listed as <em>Verified</em> once reviewed by our admin team.
-        </div>
-
-        <button type="submit" class="btn btn-accent btn-lg" style="width: 100%;">
-          <i class="fa-solid fa-store"></i> Register & Proceed to Verification
-        </button>
-      </form>
-    </div>
-
-    <div class="card-footer" style="text-align: center; font-size: 0.9rem; padding: 1.25rem;">
-      Already registered? <a href="{{ url_for('auth.login') }}" style="font-weight: 600;">Sign In Here</a>
-    </div>
-  </div>
-</div>
+</main>
 {% endblock %}

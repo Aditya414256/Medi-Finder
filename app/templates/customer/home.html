@@ -71,6 +71,94 @@
       gap: 1.5rem;
     }
   }
+
+  /* ── Autocomplete Dropdown ── */
+  .autocomplete-wrapper {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+  .ac-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border: 1.5px solid var(--primary);
+    border-radius: var(--radius-md);
+    box-shadow: 0 12px 32px rgba(2,132,199,0.15);
+    z-index: 9999;
+    max-height: 320px;
+    overflow-y: auto;
+    display: none;
+    animation: acFadeIn 0.15s ease;
+  }
+  @keyframes acFadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .ac-dropdown.open { display: block; }
+  .ac-item {
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.12s;
+  }
+  .ac-item:last-child { border-bottom: none; }
+  .ac-item:hover, .ac-item.focused {
+    background: rgba(2,132,199,0.07);
+  }
+  .ac-item-icon {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(2,132,199,0.1);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    color: var(--primary);
+    font-size: 0.85rem;
+  }
+  .ac-item-body { flex: 1; min-width: 0; }
+  .ac-item-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ac-item-sub {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+  .ac-badge-rx {
+    font-size: 0.65rem;
+    font-weight: 700;
+    background: #fee2e2;
+    color: #dc2626;
+    border-radius: 4px;
+    padding: 1px 5px;
+    flex-shrink: 0;
+  }
+  .ac-badge-otc {
+    font-size: 0.65rem;
+    font-weight: 700;
+    background: #dcfce7;
+    color: #16a34a;
+    border-radius: 4px;
+    padding: 1px 5px;
+    flex-shrink: 0;
+  }
+  .ac-loading, .ac-empty {
+    padding: 0.85rem 1rem;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    text-align: center;
+  }
 </style>
 {% endblock %}
 
@@ -93,17 +181,22 @@
     <!-- Hero Search Shortcut → Redirects to Find Medicine page -->
     <div class="hero-search-wrapper">
       <form action="{{ url_for('customer.search') }}" method="GET" class="hero-search-form" id="hero-search-form">
-        <div class="search-input-group">
+        <div class="search-input-group" style="flex:1; position:relative;">
           <i class="fa-solid fa-magnifying-glass" style="color: var(--primary);"></i>
-          <input
-            type="text"
-            name="q"
-            id="hero-search-input"
-            class="search-input"
-            placeholder="Search medicine or generic name (e.g. Paracetamol, Amoxicillin)..."
-            autocomplete="off"
-            aria-label="Search medicine"
-          >
+          <div class="autocomplete-wrapper">
+            <input
+              type="text"
+              name="q"
+              id="hero-search-input"
+              class="search-input"
+              placeholder="Search medicine or generic name (e.g. Paracetamol, Amoxicillin)..."
+              autocomplete="off"
+              aria-label="Search medicine"
+              aria-autocomplete="list"
+              aria-controls="hero-ac-dropdown"
+            >
+            <div class="ac-dropdown" id="hero-ac-dropdown" role="listbox"></div>
+          </div>
         </div>
         <button type="submit" class="btn btn-primary btn-lg" id="hero-search-btn">
           <i class="fa-solid fa-search"></i> Search Medicine
@@ -187,4 +280,91 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  const input  = document.getElementById('hero-search-input');
+  const drop   = document.getElementById('hero-ac-dropdown');
+  const form   = document.getElementById('hero-search-form');
+  let debounce, focusIdx = -1, items = [];
+
+  function renderItems(suggestions) {
+    items = suggestions;
+    focusIdx = -1;
+    if (!suggestions.length) {
+      drop.innerHTML = '<div class="ac-empty"><i class="fa-solid fa-circle-info"></i> No suggestions found</div>';
+      drop.classList.add('open');
+      return;
+    }
+    drop.innerHTML = suggestions.map((s, i) => `
+      <div class="ac-item" role="option" data-idx="${i}" data-url="${s.url}" tabindex="-1">
+        <div class="ac-item-icon"><i class="fa-solid fa-pills"></i></div>
+        <div class="ac-item-body">
+          <div class="ac-item-name">${s.name}</div>
+          <div class="ac-item-sub">${[s.generic_name, s.dosage_form, s.strength].filter(Boolean).join(' · ')}</div>
+        </div>
+        <span class="${s.requires_prescription ? 'ac-badge-rx' : 'ac-badge-otc'}">${s.requires_prescription ? 'Rx' : 'OTC'}</span>
+      </div>`).join('');
+    drop.classList.add('open');
+
+    drop.querySelectorAll('.ac-item').forEach(el => {
+      el.addEventListener('mousedown', e => {
+        e.preventDefault();
+        selectItem(parseInt(el.dataset.idx));
+      });
+    });
+  }
+
+  function selectItem(idx) {
+    if (items[idx]) {
+      window.location.href = items[idx].url;
+    }
+  }
+
+  function setFocus(idx) {
+    const els = drop.querySelectorAll('.ac-item');
+    els.forEach(e => e.classList.remove('focused'));
+    if (idx >= 0 && idx < els.length) {
+      els[idx].classList.add('focused');
+      els[idx].scrollIntoView({ block: 'nearest' });
+      focusIdx = idx;
+    }
+  }
+
+  function closeDropdown() {
+    drop.classList.remove('open');
+    drop.innerHTML = '';
+    focusIdx = -1;
+    items = [];
+  }
+
+  input.addEventListener('input', () => {
+    clearTimeout(debounce);
+    const q = input.value.trim();
+    if (q.length < 2) { closeDropdown(); return; }
+    drop.innerHTML = '<div class="ac-loading"><i class="fa-solid fa-spinner fa-spin"></i> Searching...</div>';
+    drop.classList.add('open');
+    debounce = setTimeout(() => {
+      fetch(`/api/medicines/suggestions?q=${encodeURIComponent(q)}`)
+        .then(r => r.json())
+        .then(data => { if (input.value.trim() === q) renderItems(data.suggestions || []); })
+        .catch(() => closeDropdown());
+    }, 220);
+  });
+
+  input.addEventListener('keydown', e => {
+    const els = drop.querySelectorAll('.ac-item');
+    if (e.key === 'ArrowDown')  { e.preventDefault(); setFocus(Math.min(focusIdx + 1, els.length - 1)); }
+    if (e.key === 'ArrowUp')    { e.preventDefault(); setFocus(Math.max(focusIdx - 1, 0)); }
+    if (e.key === 'Escape')     { closeDropdown(); }
+    if (e.key === 'Enter' && focusIdx >= 0) { e.preventDefault(); selectItem(focusIdx); }
+  });
+
+  document.addEventListener('click', e => {
+    if (!input.contains(e.target) && !drop.contains(e.target)) closeDropdown();
+  });
+})();
+</script>
 {% endblock %}

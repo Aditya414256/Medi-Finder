@@ -19,70 +19,24 @@ customer_bp = Blueprint('customer', __name__)
 
 @customer_bp.route('/')
 def home():
-    categories = MedicineService.get_all_categories()
-    featured_medicines = Medicine.query.limit(8).all()
-    verified_pharmacies_count = Pharmacy.query.filter_by(verification_status='APPROVED', is_active=True).count()
-    medicines_count = Medicine.query.count()
+    query_str = sanitize_search_query(request.args.get('q', ''))
+    medicines = []
+    if query_str:
+        medicines = MedicineService.search_medicines(query_str=query_str, limit=60)
     return render_template(
         'customer/home.html',
-        categories=categories,
-        featured_medicines=featured_medicines,
-        verified_count=verified_pharmacies_count,
-        medicines_count=medicines_count
+        query=query_str,
+        medicines=medicines
     )
 
 
 @customer_bp.route('/search')
 def search():
-    query_str = sanitize_search_query(request.args.get('q', ''))
-    category_id = request.args.get('category_id', type=int)
-    rx_filter = request.args.get('requires_prescription')
-    
-    prescription_only = None
-    if rx_filter == '1':
-        prescription_only = True
-    elif rx_filter == '0':
-        prescription_only = False
-
-    medicines = MedicineService.search_medicines(
-        query_str=query_str,
-        category_id=category_id,
-        prescription_only=prescription_only,
-        limit=60
-    )
-
-    categories = MedicineService.get_all_categories()
-
-    # Pre-fetch availability stats and price for each medicine
-    medicine_stats = {}
-    for med in medicines:
-        inv_items = PharmacyInventory.query.filter_by(medicine_id=med.id).join(Pharmacy).filter(
-            Pharmacy.verification_status == 'APPROVED',
-            Pharmacy.is_active == True,
-            PharmacyInventory.stock_status.in_(['AVAILABLE', 'LOW_STOCK'])
-        ).all()
-        verified_stock = len(inv_items)
-        prices = [item.price for item in inv_items if item.price and item.price > 0]
-        min_price = min(prices) if prices else None
-        if not min_price:
-            any_inv = PharmacyInventory.query.filter_by(medicine_id=med.id).filter(PharmacyInventory.price > 0).first()
-            if any_inv:
-                min_price = any_inv.price
-
-        medicine_stats[med.id] = {
-            'verified_pharmacies_count': verified_stock,
-            'price': min_price
-        }
-
-    return render_template(
-        'customer/search.html',
-        query=query_str,
-        medicines=medicines,
-        categories=categories,
-        selected_category=category_id,
-        rx_filter=rx_filter,
-        medicine_stats=medicine_stats
-    )
+    # Redirect to home with q param — search is now merged into home
+    q = request.args.get('q', '')
+    if q:
+        return redirect(url_for('customer.home', q=q))
+    return redirect(url_for('customer.home'))
 
 
 def _process_store_pickup_order(medicine, user_lat=None, user_lon=None):

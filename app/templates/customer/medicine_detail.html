@@ -48,6 +48,10 @@
   <!-- INITIAL SCREEN: Shows ONLY Medicine Name and the TWO buttons -->
   <div style="max-width: 500px; margin: 4rem auto; text-align: center;">
 
+    <a href="{{ url_for('customer.home') }}" style="font-size: 0.9rem; color: var(--text-muted); text-decoration: none; display: block; margin-bottom: 1.5rem;">
+      &larr; Back to search
+    </a>
+
     <h1 style="font-size: 2.2rem; font-weight: 700; margin-bottom: 2.5rem; color: var(--text-main);">
       {{ medicine.name }}
     </h1>
@@ -64,6 +68,7 @@
 
   </div>
 {% endif %}
+
 {% endblock %}
 
 {% block extra_js %}

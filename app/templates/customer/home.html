@@ -1,78 +1,43 @@
 {% extends 'base.html' %}
-{% block title %}MediFind - Medicine Discovery & Verified Pharmacy Platform{% endblock %}
+{% block title %}MediFind - Find Medicine & Verified Pharmacies{% endblock %}
 
 {% block extra_css %}
 <style>
-  /* Features Grid */
-  .features-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-    margin: 3.5rem 0 4rem;
+  /* ── Search wrapper ── */
+  .home-search-section {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2.5rem 1rem 0;
   }
-  .feature-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
+  .home-search-form {
+    background: #ffffff;
+    border: 2px solid var(--border-color);
     border-radius: var(--radius-lg);
-    padding: 2.25rem 1.75rem;
-    text-align: center;
-    box-shadow: var(--shadow-sm);
-    transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
-  }
-  .feature-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-    border-color: var(--primary);
-  }
-  .feature-icon-wrapper {
-    width: 64px;
-    height: 64px;
-    margin: 0 auto 1.5rem;
-    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 1.6rem;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
   }
-  .feature-card h3 {
-    font-size: 1.2rem;
-    margin-bottom: 0.75rem;
+  .home-search-form:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 8px 24px rgba(2,132,199,0.15);
   }
-  .feature-card p {
-    font-size: 0.92rem;
-    color: var(--text-muted);
-    line-height: 1.6;
-    margin: 0;
+  .home-search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 1.05rem;
+    font-family: inherit;
+    padding: 0.6rem 0.75rem;
+    color: var(--text-main);
+    background: transparent;
   }
+  .home-search-input::placeholder { color: var(--text-subtle); }
 
-  /* CTA Banner */
-  .cta-banner {
-    background: linear-gradient(135deg, rgba(2,132,199,0.08) 0%, rgba(5,150,105,0.08) 100%);
-    border: 1px solid rgba(2,132,199,0.2);
-    border-radius: var(--radius-lg);
-    padding: 3rem 2rem;
-    text-align: center;
-    margin-bottom: 4rem;
-  }
-  .cta-banner h2 {
-    font-size: 1.85rem;
-    margin-bottom: 0.75rem;
-  }
-  .cta-banner p {
-    font-size: 1rem;
-    color: var(--text-muted);
-    max-width: 600px;
-    margin: 0 auto 1.75rem;
-  }
-
-  @media (max-width: 850px) {
-    .features-grid {
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-    }
-  }
-
-  /* ── Autocomplete Dropdown ── */
+  /* ── Autocomplete ── */
   .autocomplete-wrapper {
     position: relative;
     flex: 1;
@@ -81,9 +46,9 @@
   }
   .ac-dropdown {
     position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    right: 0;
+    top: calc(100% + 8px);
+    left: -0.5rem;
+    right: -5rem;
     background: #ffffff;
     border: 1.5px solid var(--primary);
     border-radius: var(--radius-md);
@@ -92,191 +57,163 @@
     max-height: 320px;
     overflow-y: auto;
     display: none;
-    animation: acFadeIn 0.15s ease;
+    animation: acFadeIn 0.13s ease;
   }
   @keyframes acFadeIn {
-    from { opacity: 0; transform: translateY(-6px); }
+    from { opacity: 0; transform: translateY(-5px); }
     to   { opacity: 1; transform: translateY(0); }
   }
   .ac-dropdown.open { display: block; }
   .ac-item {
-    padding: 0.7rem 1rem;
+    padding: 0.65rem 1rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 0.75rem;
     border-bottom: 1px solid var(--border-color);
-    transition: background 0.12s;
+    transition: background 0.1s;
   }
   .ac-item:last-child { border-bottom: none; }
-  .ac-item:hover, .ac-item.focused {
-    background: rgba(2,132,199,0.07);
-  }
+  .ac-item:hover, .ac-item.focused { background: rgba(2,132,199,0.07); }
   .ac-item-icon {
-    width: 32px; height: 32px;
+    width: 28px; height: 28px;
     border-radius: 50%;
     background: rgba(2,132,199,0.1);
     display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    color: var(--primary);
-    font-size: 0.85rem;
+    flex-shrink: 0; color: var(--primary); font-size: 0.8rem;
   }
   .ac-item-body { flex: 1; min-width: 0; }
-  .ac-item-name {
-    font-weight: 700;
-    font-size: 0.95rem;
-    color: var(--text-main);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .ac-item-name { font-weight: 700; font-size: 0.93rem; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ac-item-sub  { font-size: 0.76rem; color: var(--text-muted); margin-top: 1px; }
+  .ac-badge-rx  { font-size: 0.63rem; font-weight: 700; background: #fee2e2; color: #dc2626; border-radius: 3px; padding: 1px 5px; flex-shrink: 0; }
+  .ac-badge-otc { font-size: 0.63rem; font-weight: 700; background: #dcfce7; color: #16a34a; border-radius: 3px; padding: 1px 5px; flex-shrink: 0; }
+  .ac-loading, .ac-empty { padding: 0.8rem 1rem; color: var(--text-muted); font-size: 0.87rem; text-align: center; }
+
+  /* ── Results ── */
+  .results-section {
+    max-width: 700px;
+    margin: 1.5rem auto 3rem;
+    padding: 0 1rem;
   }
-  .ac-item-sub {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    margin-top: 1px;
-  }
-  .ac-badge-rx {
-    font-size: 0.65rem;
-    font-weight: 700;
-    background: #fee2e2;
-    color: #dc2626;
-    border-radius: 4px;
-    padding: 1px 5px;
-    flex-shrink: 0;
-  }
-  .ac-badge-otc {
-    font-size: 0.65rem;
-    font-weight: 700;
-    background: #dcfce7;
-    color: #16a34a;
-    border-radius: 4px;
-    padding: 1px 5px;
-    flex-shrink: 0;
-  }
-  .ac-loading, .ac-empty {
-    padding: 0.85rem 1rem;
-    color: var(--text-muted);
+  .results-meta {
     font-size: 0.88rem;
-    text-align: center;
+    color: var(--text-muted);
+    margin-bottom: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
+  .med-result-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-main);
+    margin-bottom: 0.65rem;
+    transition: border-color 0.15s, box-shadow 0.15s, color 0.15s;
+  }
+  .med-result-card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
+    color: var(--primary);
+  }
+  .med-result-name { font-size: 1.15rem; font-weight: 700; }
+  .med-result-arrow { color: var(--text-muted); transition: transform 0.15s, color 0.15s; }
+  .med-result-card:hover .med-result-arrow { transform: translateX(4px); color: var(--primary); }
+
+  /* ── Hero (no-query state) ── */
+  .hero-intro {
+    text-align: center;
+    padding: 1rem 0 2rem;
+  }
+  .hero-intro h1 { font-size: 2.2rem; margin-bottom: 0.6rem; }
+  .hero-intro p  { color: var(--text-muted); font-size: 1rem; max-width: 520px; margin: 0 auto; }
 </style>
 {% endblock %}
 
 {% block content %}
+<div class="home-search-section">
 
-<!-- Hero Section: Introduction + Search Shortcut -->
-<section class="hero-section">
-  <div class="container">
-    <div class="hero-pill">
-      <i class="fa-solid fa-shield-halved"></i> 100% Verified Pharmacy Network &bull; Transparent Inventory
+  {% if not query %}
+  <div class="hero-intro">
+    <div class="hero-pill" style="margin-bottom:1rem;">
+      <i class="fa-solid fa-shield-halved"></i> 100% Verified Pharmacy Network
     </div>
-    <h1 class="hero-title">
-      Find your medicine.<br>
-      Find a <span>verified pharmacy</span>.
-    </h1>
-    <p class="hero-sub">
-      MediFind connects you with local licensed pharmacies. Search essential medicines, check prescription requirements and transparent prices, and find nearby verified stores with ease.
-    </p>
-
-    <!-- Hero Search Shortcut → Redirects to Find Medicine page -->
-    <div class="hero-search-wrapper">
-      <form action="{{ url_for('customer.search') }}" method="GET" class="hero-search-form" id="hero-search-form">
-        <div class="search-input-group" style="flex:1; position:relative;">
-          <i class="fa-solid fa-magnifying-glass" style="color: var(--primary);"></i>
-          <div class="autocomplete-wrapper">
-            <input
-              type="text"
-              name="q"
-              id="hero-search-input"
-              class="search-input"
-              placeholder="Search medicine or generic name (e.g. Paracetamol, Amoxicillin)..."
-              autocomplete="off"
-              aria-label="Search medicine"
-              aria-autocomplete="list"
-              aria-controls="hero-ac-dropdown"
-            >
-            <div class="ac-dropdown" id="hero-ac-dropdown" role="listbox"></div>
-          </div>
-        </div>
-        <button type="submit" class="btn btn-primary btn-lg" id="hero-search-btn">
-          <i class="fa-solid fa-search"></i> Search Medicine
-        </button>
-      </form>
-    </div>
-
-    <!-- Quick Navigation Shortcuts -->
-    <div style="margin-top: 1.75rem; display: flex; justify-content: center; gap: 0.75rem; flex-wrap: wrap;">
-      <a href="{{ url_for('customer.search') }}" class="btn btn-sm btn-outline">
-        <i class="fa-solid fa-pills" style="color:var(--primary);"></i> Browse Find Medicine
-      </a>
-      <a href="{{ url_for('customer.map_view') }}" class="btn btn-sm btn-outline">
-        <i class="fa-solid fa-store" style="color:var(--accent);"></i> View All Pharmacies
-      </a>
-    </div>
+    <h1>Find your medicine.</h1>
+    <p>Search by name or generic name to check availability and order from a verified pharmacy.</p>
   </div>
-</section>
+  {% endif %}
 
-<!-- Platform Value Highlights -->
-<section class="container" style="padding-bottom: 0;">
-  <div class="features-grid">
-
-    <!-- Feature 1: Medicine Search -->
-    <div class="feature-card">
-      <div class="feature-icon-wrapper" style="background:#e0f2fe; color:#0284c7;">
-        <i class="fa-solid fa-magnifying-glass"></i>
-      </div>
-      <h3>Search Medicines</h3>
-      <p>
-        Quickly find essential medicines and select your preferred fulfillment method.
-      </p>
+  <form action="{{ url_for('customer.home') }}" method="GET" class="home-search-form" id="home-search-form">
+    <i class="fa-solid fa-magnifying-glass" style="color:var(--primary); margin-left:0.5rem;"></i>
+    <div class="autocomplete-wrapper">
+      <input
+        type="text"
+        name="q"
+        id="home-search-input"
+        class="home-search-input"
+        value="{{ query }}"
+        placeholder="Search medicine (e.g. Paracetamol, Amoxicillin)..."
+        autocomplete="off"
+        aria-label="Search medicine"
+        aria-autocomplete="list"
+        aria-controls="home-ac-dropdown"
+      >
+      <div class="ac-dropdown" id="home-ac-dropdown" role="listbox"></div>
     </div>
+    {% if query %}
+      <a href="{{ url_for('customer.home') }}" class="btn btn-outline btn-sm" style="padding:0.4rem 0.6rem; flex-shrink:0;" title="Clear">&times;</a>
+    {% endif %}
+    <button type="submit" class="btn btn-primary" style="flex-shrink:0;">Search</button>
+  </form>
 
-    <!-- Feature 2: Verified Pharmacies -->
-    <div class="feature-card">
-      <div class="feature-icon-wrapper" style="background:#ecfdf5; color:#059669;">
-        <i class="fa-solid fa-certificate"></i>
-      </div>
-      <h3>Verified Pharmacies</h3>
-      <p>
-        Connect directly with licensed chemists holding valid state drug certifications.
-      </p>
-    </div>
+</div>
 
-    <!-- Feature 3: Safe & Simple -->
-    <div class="feature-card">
-      <div class="feature-icon-wrapper" style="background:#fef3c7; color:#d97706;">
-        <i class="fa-solid fa-truck-medical"></i>
-      </div>
-      <h3>Store &amp; Delivery</h3>
-      <p>
-        Easily choose between immediate in-store pickup and convenient home delivery.
-      </p>
-    </div>
-
+{% if query %}
+<div class="results-section">
+  <div class="results-meta">
+    <span>
+      Found <strong>{{ medicines|length }}</strong> result{{ 's' if medicines|length != 1 else '' }} for
+      &ldquo;<strong>{{ query }}</strong>&rdquo;
+    </span>
+    <a href="{{ url_for('customer.home') }}" style="font-size:0.82rem; color:var(--text-muted); text-decoration:none;">&times; Clear</a>
   </div>
 
-  <!-- Call to Action Banner -->
-  <div class="cta-banner" style="margin-top: 3.5rem;">
-    <h2>Ready to find your medication?</h2>
-    <p>
-      Search for essential medicines or browse our directory of local verified pharmacies.
-    </p>
-    <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
-      <a href="{{ url_for('customer.search') }}" class="btn btn-primary btn-lg">
-        <i class="fa-solid fa-magnifying-glass"></i> Open Find Medicine
+  {% if medicines %}
+    {% for med in medicines %}
+      <a href="{{ url_for('customer.medicine_detail', medicine_id=med.id) }}" class="med-result-card">
+        <span class="med-result-name">{{ med.name }}</span>
+        <span class="med-result-arrow"><i class="fa-solid fa-chevron-right"></i></span>
       </a>
-      <a href="{{ url_for('customer.map_view') }}" class="btn btn-outline btn-lg">
-        <i class="fa-solid fa-store"></i> Browse Pharmacies
-      </a>
+    {% endfor %}
+  {% else %}
+    <div class="card" style="text-align:center; padding:3rem 1.5rem;">
+      <i class="fa-solid fa-capsules" style="font-size:2.5rem; color:var(--text-subtle); margin-bottom:0.75rem; display:block;"></i>
+      <h3 style="margin-bottom:0.4rem;">No medicines found</h3>
+      <p style="color:var(--text-muted); font-size:0.9rem; max-width:400px; margin:0 auto;">
+        No match for &ldquo;<strong>{{ query }}</strong>&rdquo;. Try a different name or generic name.
+      </p>
     </div>
-  </div>
-</section>
+  {% endif %}
+</div>
 
-<!-- Mandatory Medical Disclaimer -->
-<div class="disclaimer-banner" style="margin-top: 1rem; background: #fffbeb; border-color: #fde68a;">
-  <i class="fa-solid fa-circle-exclamation" style="color: var(--warning); font-size: 1.4rem;"></i>
-  <div style="color: #92400e; font-size: 0.88rem; line-height: 1.5;">
-    <strong>Important Notice:</strong> Medicine availability information depends on pharmacy inventory updates. MediFind does not provide medical diagnoses, treatment recommendations, or clinical decision-making. Always confirm availability and consult a licensed pharmacist.
+{% else %}
+<div style="text-align:center; margin-top:2rem; color:var(--text-muted); font-size:0.92rem;">
+  <i class="fa-solid fa-magnifying-glass" style="color:var(--primary); opacity:0.6; font-size:1.75rem; display:block; margin-bottom:0.6rem;"></i>
+  Type a medicine name above to search.
+</div>
+{% endif %}
+
+<!-- Disclaimer -->
+<div class="disclaimer-banner" style="max-width:700px; margin:2rem auto 1rem; background:#fffbeb; border-color:#fde68a;">
+  <i class="fa-solid fa-circle-exclamation" style="color:var(--warning); font-size:1.2rem;"></i>
+  <div style="color:#92400e; font-size:0.85rem; line-height:1.5;">
+    <strong>Notice:</strong> MediFind does not provide medical diagnoses or treatment recommendations.
+    Always confirm availability and consult a licensed pharmacist.
   </div>
 </div>
 
@@ -285,18 +222,15 @@
 {% block extra_js %}
 <script>
 (function() {
-  const input  = document.getElementById('hero-search-input');
-  const drop   = document.getElementById('hero-ac-dropdown');
-  const form   = document.getElementById('hero-search-form');
-  let debounce, focusIdx = -1, items = [];
+  const input = document.getElementById('home-search-input');
+  const drop  = document.getElementById('home-ac-dropdown');
+  let timer, focusIdx = -1, items = [];
 
   function renderItems(suggestions) {
-    items = suggestions;
-    focusIdx = -1;
+    items = suggestions; focusIdx = -1;
     if (!suggestions.length) {
       drop.innerHTML = '<div class="ac-empty"><i class="fa-solid fa-circle-info"></i> No suggestions found</div>';
-      drop.classList.add('open');
-      return;
+      drop.classList.add('open'); return;
     }
     drop.innerHTML = suggestions.map((s, i) => `
       <div class="ac-item" role="option" data-idx="${i}" data-url="${s.url}" tabindex="-1">
@@ -308,20 +242,12 @@
         <span class="${s.requires_prescription ? 'ac-badge-rx' : 'ac-badge-otc'}">${s.requires_prescription ? 'Rx' : 'OTC'}</span>
       </div>`).join('');
     drop.classList.add('open');
-
     drop.querySelectorAll('.ac-item').forEach(el => {
-      el.addEventListener('mousedown', e => {
-        e.preventDefault();
-        selectItem(parseInt(el.dataset.idx));
-      });
+      el.addEventListener('mousedown', e => { e.preventDefault(); selectItem(parseInt(el.dataset.idx)); });
     });
   }
 
-  function selectItem(idx) {
-    if (items[idx]) {
-      window.location.href = items[idx].url;
-    }
-  }
+  function selectItem(idx) { if (items[idx]) window.location.href = items[idx].url; }
 
   function setFocus(idx) {
     const els = drop.querySelectorAll('.ac-item');
@@ -333,37 +259,32 @@
     }
   }
 
-  function closeDropdown() {
-    drop.classList.remove('open');
-    drop.innerHTML = '';
-    focusIdx = -1;
-    items = [];
-  }
+  function close() { drop.classList.remove('open'); drop.innerHTML = ''; focusIdx = -1; items = []; }
 
   input.addEventListener('input', () => {
-    clearTimeout(debounce);
+    clearTimeout(timer);
     const q = input.value.trim();
-    if (q.length < 2) { closeDropdown(); return; }
+    if (q.length < 2) { close(); return; }
     drop.innerHTML = '<div class="ac-loading"><i class="fa-solid fa-spinner fa-spin"></i> Searching...</div>';
     drop.classList.add('open');
-    debounce = setTimeout(() => {
+    timer = setTimeout(() => {
       fetch(`/api/medicines/suggestions?q=${encodeURIComponent(q)}`)
         .then(r => r.json())
         .then(data => { if (input.value.trim() === q) renderItems(data.suggestions || []); })
-        .catch(() => closeDropdown());
-    }, 220);
+        .catch(() => close());
+    }, 200);
   });
 
   input.addEventListener('keydown', e => {
     const els = drop.querySelectorAll('.ac-item');
     if (e.key === 'ArrowDown')  { e.preventDefault(); setFocus(Math.min(focusIdx + 1, els.length - 1)); }
     if (e.key === 'ArrowUp')    { e.preventDefault(); setFocus(Math.max(focusIdx - 1, 0)); }
-    if (e.key === 'Escape')     { closeDropdown(); }
+    if (e.key === 'Escape')     { close(); }
     if (e.key === 'Enter' && focusIdx >= 0) { e.preventDefault(); selectItem(focusIdx); }
   });
 
   document.addEventListener('click', e => {
-    if (!input.contains(e.target) && !drop.contains(e.target)) closeDropdown();
+    if (!input.contains(e.target) && !drop.contains(e.target)) close();
   });
 })();
 </script>

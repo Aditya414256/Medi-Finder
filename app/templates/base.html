@@ -30,7 +30,6 @@
 
       <ul class="nav-links">
         <li class="nav-item"><a href="{{ url_for('customer.home') }}" class="{% if request.endpoint == 'customer.home' %}active{% endif %}">Home</a></li>
-        <li class="nav-item"><a href="{{ url_for('customer.search') }}" class="{% if request.endpoint == 'customer.search' %}active{% endif %}">Find Medicine</a></li>
         <li class="nav-item"><a href="{{ url_for('customer.map_view') }}" class="{% if request.endpoint == 'customer.map_view' %}active{% endif %}">Pharmacies</a></li>
         
         {% if current_user.is_authenticated and current_user.is_customer %}
@@ -126,10 +125,8 @@
         <div class="footer-col">
           <h5>Platform</h5>
           <ul class="footer-links">
-            <li><a href="{{ url_for('customer.search') }}">Find Medicines</a></li>
+            <li><a href="{{ url_for('customer.home') }}">Find Medicines</a></li>
             <li><a href="{{ url_for('customer.map_view') }}">Nearby Pharmacies</a></li>
-            <li><a href="{{ url_for('customer.search', requires_prescription='0') }}">Over-The-Counter (OTC)</a></li>
-            <li><a href="{{ url_for('customer.search', requires_prescription='1') }}">Prescription Medicines</a></li>
           </ul>
         </div>
 

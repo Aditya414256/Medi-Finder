@@ -32,6 +32,9 @@ def home():
 
 @customer_bp.route('/search')
 def search():
+    """
+    Backward-compatible search route rendering the unified medicine discovery experience.
+    """
     query_str = sanitize_search_query(request.args.get('q', ''))
     category_id = request.args.get('category_id', type=int)
     rx_filter = request.args.get('requires_prescription')
@@ -42,44 +45,19 @@ def search():
     elif rx_filter == '0':
         prescription_only = False
 
-    medicines = MedicineService.search_medicines(
-        query_str=query_str,
-        category_id=category_id,
-        prescription_only=prescription_only,
-        limit=60
-    )
-
-    categories = MedicineService.get_all_categories()
-
-    # Pre-fetch availability stats and price for each medicine
-    medicine_stats = {}
-    for med in medicines:
-        inv_items = PharmacyInventory.query.filter_by(medicine_id=med.id).join(Pharmacy).filter(
-            Pharmacy.verification_status == 'APPROVED',
-            Pharmacy.is_active == True,
-            PharmacyInventory.stock_status.in_(['AVAILABLE', 'LOW_STOCK'])
-        ).all()
-        verified_stock = len(inv_items)
-        prices = [item.price for item in inv_items if item.price and item.price > 0]
-        min_price = min(prices) if prices else None
-        if not min_price:
-            any_inv = PharmacyInventory.query.filter_by(medicine_id=med.id).filter(PharmacyInventory.price > 0).first()
-            if any_inv:
-                min_price = any_inv.price
-
-        medicine_stats[med.id] = {
-            'verified_pharmacies_count': verified_stock,
-            'price': min_price
-        }
+    medicines = []
+    if query_str or category_id or rx_filter is not None:
+        medicines = MedicineService.search_medicines(
+            query_str=query_str,
+            category_id=category_id,
+            prescription_only=prescription_only,
+            limit=60
+        )
 
     return render_template(
-        'customer/search.html',
+        'customer/home.html',
         query=query_str,
-        medicines=medicines,
-        categories=categories,
-        selected_category=category_id,
-        rx_filter=rx_filter,
-        medicine_stats=medicine_stats
+        medicines=medicines
     )
 
 

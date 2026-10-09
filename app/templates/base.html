@@ -20,17 +20,13 @@
   <!-- Navigation Bar -->
   <nav class="navbar">
     <div class="container navbar-inner">
-      <a href="{{ url_for('customer.home') }}" class="brand-logo">
-        <div class="brand-icon">
-          <i class="fa-solid fa-staff-snake"></i>
-        </div>
+      <a href="{{ url_for('customer.home') }}" class="brand-logo logo">
+        <div class="logo-icon">+</div>
         <span>MediFind</span>
-        <span class="brand-badge">Verified Hub</span>
       </a>
 
       <ul class="nav-links">
-        <li class="nav-item"><a href="{{ url_for('customer.home') }}" class="{% if request.endpoint == 'customer.home' %}active{% endif %}">Home</a></li>
-        <li class="nav-item"><a href="{{ url_for('customer.search') }}" class="{% if request.endpoint == 'customer.search' %}active{% endif %}">Find Medicine</a></li>
+        <li class="nav-item"><a href="{{ url_for('customer.home') }}" class="{% if request.endpoint in ['customer.home', 'customer.search'] %}active{% endif %}">Find Medicine</a></li>
         <li class="nav-item"><a href="{{ url_for('customer.map_view') }}" class="{% if request.endpoint == 'customer.map_view' %}active{% endif %}">Pharmacies</a></li>
         
         {% if current_user.is_authenticated and current_user.is_customer %}
@@ -71,8 +67,8 @@
             </a>
           </div>
         {% else %}
-          <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-sm">Login</a>
-          <a href="{{ url_for('auth.register_choice') }}" class="btn btn-primary btn-sm">Register</a>
+          <a href="{{ url_for('auth.login') }}" class="btn-login">Login</a>
+          <a href="{{ url_for('auth.register_choice') }}" class="btn-register">Register</a>
         {% endif %}
       </div>
     </div>

@@ -1,291 +1,150 @@
 {% extends 'base.html' %}
 {% block title %}MediFind - Find Medicine & Verified Pharmacies{% endblock %}
 
-{% block extra_css %}
-<style>
-  /* ── Search wrapper ── */
-  .home-search-section {
-    max-width: 700px;
-    margin: 0 auto;
-    padding: 2.5rem 1rem 0;
-  }
-  .home-search-form {
-    background: #ffffff;
-    border: 2px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    position: relative;
-  }
-  .home-search-form:focus-within {
-    border-color: var(--primary);
-    box-shadow: 0 8px 24px rgba(2,132,199,0.15);
-  }
-  .home-search-input {
-    flex: 1;
-    border: none;
-    outline: none;
-    font-size: 1.05rem;
-    font-family: inherit;
-    padding: 0.6rem 0.75rem;
-    color: var(--text-main);
-    background: transparent;
-  }
-  .home-search-input::placeholder { color: var(--text-subtle); }
-
-  /* ── Autocomplete ── */
-  .autocomplete-wrapper {
-    position: relative;
-    flex: 1;
-    display: flex;
-    align-items: center;
-  }
-  .ac-dropdown {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: -0.5rem;
-    right: -5rem;
-    background: #ffffff;
-    border: 1.5px solid var(--primary);
-    border-radius: var(--radius-md);
-    box-shadow: 0 12px 32px rgba(2,132,199,0.15);
-    z-index: 9999;
-    max-height: 320px;
-    overflow-y: auto;
-    display: none;
-    animation: acFadeIn 0.13s ease;
-  }
-  @keyframes acFadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .ac-dropdown.open { display: block; }
-  .ac-item {
-    padding: 0.65rem 1rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    border-bottom: 1px solid var(--border-color);
-    transition: background 0.1s;
-  }
-  .ac-item:last-child { border-bottom: none; }
-  .ac-item:hover, .ac-item.focused { background: rgba(2,132,199,0.07); }
-  .ac-item-icon {
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    background: rgba(2,132,199,0.1);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; color: var(--primary); font-size: 0.8rem;
-  }
-  .ac-item-body { flex: 1; min-width: 0; }
-  .ac-item-name { font-weight: 700; font-size: 0.93rem; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .ac-item-sub  { font-size: 0.76rem; color: var(--text-muted); margin-top: 1px; }
-  .ac-badge-rx  { font-size: 0.63rem; font-weight: 700; background: #fee2e2; color: #dc2626; border-radius: 3px; padding: 1px 5px; flex-shrink: 0; }
-  .ac-badge-otc { font-size: 0.63rem; font-weight: 700; background: #dcfce7; color: #16a34a; border-radius: 3px; padding: 1px 5px; flex-shrink: 0; }
-  .ac-loading, .ac-empty { padding: 0.8rem 1rem; color: var(--text-muted); font-size: 0.87rem; text-align: center; }
-
-  /* ── Results ── */
-  .results-section {
-    max-width: 700px;
-    margin: 1.5rem auto 3rem;
-    padding: 0 1rem;
-  }
-  .results-meta {
-    font-size: 0.88rem;
-    color: var(--text-muted);
-    margin-bottom: 0.85rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .med-result-card {
-    background: #ffffff;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 1.1rem 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    text-decoration: none;
-    color: var(--text-main);
-    margin-bottom: 0.65rem;
-    transition: border-color 0.15s, box-shadow 0.15s, color 0.15s;
-  }
-  .med-result-card:hover {
-    border-color: var(--primary);
-    box-shadow: var(--shadow-md);
-    color: var(--primary);
-  }
-  .med-result-name { font-size: 1.15rem; font-weight: 700; }
-  .med-result-arrow { color: var(--text-muted); transition: transform 0.15s, color 0.15s; }
-  .med-result-card:hover .med-result-arrow { transform: translateX(4px); color: var(--primary); }
-
-  /* ── Hero (no-query state) ── */
-  .hero-intro {
-    text-align: center;
-    padding: 1rem 0 2rem;
-  }
-  .hero-intro h1 { font-size: 2.2rem; margin-bottom: 0.6rem; }
-  .hero-intro p  { color: var(--text-muted); font-size: 1rem; max-width: 520px; margin: 0 auto; }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="home-search-section">
+<!-- Web Intro Hero -->
+<section class="web-intro">
+  <h1>
+    Find your medicine.<br>
+    Find a <span>verified pharmacy</span>.
+  </h1>
+  <p>
+    Search medicines and discover verified pharmacies through MediFind.
+  </p>
+</section>
 
-  {% if not query %}
-  <div class="hero-intro">
-    <div class="hero-pill" style="margin-bottom:1rem;">
-      <i class="fa-solid fa-shield-halved"></i> 100% Verified Pharmacy Network
-    </div>
-    <h1>Find your medicine.</h1>
-    <p>Search by name or generic name to check availability and order from a verified pharmacy.</p>
+<!-- Search Section -->
+<section class="search-section">
+  <div class="search-wrapper">
+    <form class="search-bar" action="{{ url_for('customer.home') }}" method="GET" id="search-form">
+      <div class="search-input-group">
+        <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+        <input
+          class="search-input"
+          id="search-input"
+          name="q"
+          type="text"
+          value="{{ query }}"
+          placeholder="Search for medicines (e.g. Paracetamol, Amoxicillin)..."
+          autocomplete="off"
+          aria-label="Search medicine"
+          aria-autocomplete="list"
+          aria-controls="ac-dropdown"
+        >
+        {% if query %}
+        <a href="{{ url_for('customer.home') }}" class="search-clear-btn" title="Clear search" aria-label="Clear search">&times;</a>
+        {% endif %}
+      </div>
+      <button class="search-button" type="submit">
+        Search
+      </button>
+    </form>
+
+    <!-- Autocomplete Dropdown -->
+    <div class="ac-dropdown" id="ac-dropdown" role="listbox"></div>
   </div>
-  {% endif %}
+</section>
 
-  <form action="{{ url_for('customer.home') }}" method="GET" class="home-search-form" id="home-search-form">
-    <i class="fa-solid fa-magnifying-glass" style="color:var(--primary); margin-left:0.5rem;"></i>
-    <div class="autocomplete-wrapper">
-      <input
-        type="text"
-        name="q"
-        id="home-search-input"
-        class="home-search-input"
-        value="{{ query }}"
-        placeholder="Search medicine (e.g. Paracetamol, Amoxicillin)..."
-        autocomplete="off"
-        aria-label="Search medicine"
-        aria-autocomplete="list"
-        aria-controls="home-ac-dropdown"
-      >
-      <div class="ac-dropdown" id="home-ac-dropdown" role="listbox"></div>
-    </div>
-    {% if query %}
-      <a href="{{ url_for('customer.home') }}" class="btn btn-outline btn-sm" style="padding:0.4rem 0.6rem; flex-shrink:0;" title="Clear">&times;</a>
-    {% endif %}
-    <button type="submit" class="btn btn-primary" style="flex-shrink:0;">Search</button>
-  </form>
-
-</div>
-
+<!-- Discovery Results / Content Area -->
 {% if query %}
-<div class="results-section">
-  <div class="results-meta">
+<div class="medicine-results-wrapper">
+  <div class="results-meta-bar">
     <span>
-      Found <strong>{{ medicines|length }}</strong> result{{ 's' if medicines|length != 1 else '' }} for
-      &ldquo;<strong>{{ query }}</strong>&rdquo;
+      Found <strong>{{ medicines|length }}</strong> matching medicine{{ 's' if medicines|length != 1 else '' }} for &ldquo;<strong>{{ query }}</strong>&rdquo;
     </span>
-    <a href="{{ url_for('customer.home') }}" style="font-size:0.82rem; color:var(--text-muted); text-decoration:none;">&times; Clear</a>
+    <a href="{{ url_for('customer.home') }}" class="clear-search-pill" title="Clear search">
+      &times; Clear search
+    </a>
   </div>
 
   {% if medicines %}
+  <div class="medicine-results">
     {% for med in medicines %}
-      <a href="{{ url_for('customer.medicine_detail', medicine_id=med.id) }}" class="med-result-card">
-        <span class="med-result-name">{{ med.name }}</span>
-        <span class="med-result-arrow"><i class="fa-solid fa-chevron-right"></i></span>
-      </a>
-    {% endfor %}
-  {% else %}
-    <div class="card" style="text-align:center; padding:3rem 1.5rem;">
-      <i class="fa-solid fa-capsules" style="font-size:2.5rem; color:var(--text-subtle); margin-bottom:0.75rem; display:block;"></i>
-      <h3 style="margin-bottom:0.4rem;">No medicines found</h3>
-      <p style="color:var(--text-muted); font-size:0.9rem; max-width:400px; margin:0 auto;">
-        No match for &ldquo;<strong>{{ query }}</strong>&rdquo;. Try a different name or generic name.
-      </p>
+    <div class="medicine-card">
+      <div class="medicine-details">
+        <div class="medicine-badges">
+          {% if med.dosage_form %}
+          <span class="badge">{{ med.dosage_form }}</span>
+          {% endif %}
+          {% if med.strength %}
+          <span class="badge badge-primary">{{ med.strength }}</span>
+          {% endif %}
+          {% if med.requires_prescription %}
+          <span class="badge badge-rx">⚠ Rx Required</span>
+          {% else %}
+          <span class="badge badge-success">✓ OTC</span>
+          {% endif %}
+        </div>
+
+        <h3>
+          <a href="{{ url_for('customer.medicine_detail', medicine_id=med.id) }}" class="medicine-name-link">
+            {{ med.name }}
+          </a>
+        </h3>
+
+        {% if med.generic_name %}
+        <div class="medicine-generic">
+          <strong>Generic:</strong> {{ med.generic_name }}
+        </div>
+        {% endif %}
+
+        {% if med.description %}
+        <div class="medicine-description">
+          {{ med.description }}
+        </div>
+        {% endif %}
+
+        <div class="pharmacy-count">
+          ✓ Found in verified nearby pharmacies
+        </div>
+      </div>
+
+      <div class="medicine-action">
+        <a href="{{ url_for('customer.medicine_detail', medicine_id=med.id) }}" class="view-stores-button">
+          View Stores
+        </a>
+      </div>
     </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="medicine-empty-state">
+    <div class="empty-icon"><i class="fa-solid fa-capsules"></i></div>
+    <h3>No medicines found</h3>
+    <p>
+      No medicine matches &ldquo;<strong>{{ query }}</strong>&rdquo;. Please check the spelling or search by generic active ingredient.
+    </p>
+    <a href="{{ url_for('customer.home') }}" class="view-stores-button" style="margin-top: 1rem;">
+      Clear Search
+    </a>
+  </div>
   {% endif %}
 </div>
 
 {% else %}
-<div style="text-align:center; margin-top:2rem; color:var(--text-muted); font-size:0.92rem;">
-  <i class="fa-solid fa-magnifying-glass" style="color:var(--primary); opacity:0.6; font-size:1.75rem; display:block; margin-bottom:0.6rem;"></i>
-  Type a medicine name above to search.
+<!-- Default State (No Search Query) -->
+<div class="home-info">
+  <div class="info-item">
+    <h3>Verified Pharmacies</h3>
+    <p>Every partner pharmacy is licensed and physically audited for patient safety.</p>
+  </div>
+  <div class="info-item">
+    <h3>Real-Time Stock</h3>
+    <p>Check medicine availability with transparent inventory update timestamps.</p>
+  </div>
+  <div class="info-item">
+    <h3>Safe Fulfillment</h3>
+    <p>Order safely with verified licensed pharmacists for pickup or doorstep delivery.</p>
+  </div>
 </div>
 {% endif %}
 
-<!-- Disclaimer -->
-<div class="disclaimer-banner" style="max-width:700px; margin:2rem auto 1rem; background:#fffbeb; border-color:#fde68a;">
-  <i class="fa-solid fa-circle-exclamation" style="color:var(--warning); font-size:1.2rem;"></i>
-  <div style="color:#92400e; font-size:0.85rem; line-height:1.5;">
-    <strong>Notice:</strong> MediFind does not provide medical diagnoses or treatment recommendations.
-    Always confirm availability and consult a licensed pharmacist.
+<!-- Safety Notice Banner -->
+<div class="disclaimer-banner" style="max-width: 900px; margin: 1.5rem auto 2.5rem; background: #fffbeb; border-color: #fde68a;">
+  <i class="fa-solid fa-shield-halved" style="color: var(--warning); font-size: 1.2rem;"></i>
+  <div style="color: #92400e; font-size: 0.85rem; line-height: 1.5;">
+    <strong>Notice:</strong> MediFind is a discovery and verified pharmacy locator platform. Always confirm availability and consult a licensed pharmacist.
   </div>
 </div>
-
-{% endblock %}
-
-{% block extra_js %}
-<script>
-(function() {
-  const input = document.getElementById('home-search-input');
-  const drop  = document.getElementById('home-ac-dropdown');
-  let timer, focusIdx = -1, items = [];
-
-  function renderItems(suggestions) {
-    items = suggestions; focusIdx = -1;
-    if (!suggestions.length) {
-      drop.innerHTML = '<div class="ac-empty"><i class="fa-solid fa-circle-info"></i> No suggestions found</div>';
-      drop.classList.add('open'); return;
-    }
-    drop.innerHTML = suggestions.map((s, i) => `
-      <div class="ac-item" role="option" data-idx="${i}" data-url="${s.url}" tabindex="-1">
-        <div class="ac-item-icon"><i class="fa-solid fa-pills"></i></div>
-        <div class="ac-item-body">
-          <div class="ac-item-name">${s.name}</div>
-          <div class="ac-item-sub">${[s.generic_name, s.dosage_form, s.strength].filter(Boolean).join(' · ')}</div>
-        </div>
-        <span class="${s.requires_prescription ? 'ac-badge-rx' : 'ac-badge-otc'}">${s.requires_prescription ? 'Rx' : 'OTC'}</span>
-      </div>`).join('');
-    drop.classList.add('open');
-    drop.querySelectorAll('.ac-item').forEach(el => {
-      el.addEventListener('mousedown', e => { e.preventDefault(); selectItem(parseInt(el.dataset.idx)); });
-    });
-  }
-
-  function selectItem(idx) { if (items[idx]) window.location.href = items[idx].url; }
-
-  function setFocus(idx) {
-    const els = drop.querySelectorAll('.ac-item');
-    els.forEach(e => e.classList.remove('focused'));
-    if (idx >= 0 && idx < els.length) {
-      els[idx].classList.add('focused');
-      els[idx].scrollIntoView({ block: 'nearest' });
-      focusIdx = idx;
-    }
-  }
-
-  function close() { drop.classList.remove('open'); drop.innerHTML = ''; focusIdx = -1; items = []; }
-
-  input.addEventListener('input', () => {
-    clearTimeout(timer);
-    const q = input.value.trim();
-    if (q.length < 2) { close(); return; }
-    drop.innerHTML = '<div class="ac-loading"><i class="fa-solid fa-spinner fa-spin"></i> Searching...</div>';
-    drop.classList.add('open');
-    timer = setTimeout(() => {
-      fetch(`/api/medicines/suggestions?q=${encodeURIComponent(q)}`)
-        .then(r => r.json())
-        .then(data => { if (input.value.trim() === q) renderItems(data.suggestions || []); })
-        .catch(() => close());
-    }, 200);
-  });
-
-  input.addEventListener('keydown', e => {
-    const els = drop.querySelectorAll('.ac-item');
-    if (e.key === 'ArrowDown')  { e.preventDefault(); setFocus(Math.min(focusIdx + 1, els.length - 1)); }
-    if (e.key === 'ArrowUp')    { e.preventDefault(); setFocus(Math.max(focusIdx - 1, 0)); }
-    if (e.key === 'Escape')     { close(); }
-    if (e.key === 'Enter' && focusIdx >= 0) { e.preventDefault(); selectItem(focusIdx); }
-  });
-
-  document.addEventListener('click', e => {
-    if (!input.contains(e.target) && !drop.contains(e.target)) close();
-  });
-})();
-</script>
 {% endblock %}

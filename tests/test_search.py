@@ -53,3 +53,83 @@ def test_api_medicine_suggestions_empty(client, test_data):
     data = res.get_json()
     assert data['suggestions'] == []
 
+
+def test_unified_home_page_loads(client, test_data):
+    """Verify / loads the unified discovery page with reference design elements."""
+    res = client.get('/')
+    assert res.status_code == 200
+    html = res.get_data(as_text=True)
+    assert 'Find your medicine' in html
+    assert 'verified pharmacy' in html
+    assert 'Search for medicines' in html
+    # Check unified navigation
+    assert 'Find Medicine' in html
+    assert 'Pharmacies' in html
+    # Check logo icon from frontend reference
+    assert 'logo-icon' in html
+    assert '+' in html
+    # Check feature highlights (no-query state)
+    assert 'Verified Pharmacies' in html
+    assert 'Real-Time Stock' in html
+
+
+def test_unified_home_search_valid_query(client, test_data):
+    """Verify search submission on / displays matching database records and detail links."""
+    res = client.get('/?q=Paracetamol')
+    assert res.status_code == 200
+    html = res.get_data(as_text=True)
+    assert 'Paracetamol 500mg Test' in html
+    assert 'Acetaminophen' in html
+    assert 'OTC' in html
+    assert 'View Stores' in html
+    assert f"/medicine/{test_data['med_otc_id']}" in html
+    assert 'Found' in html
+    assert 'matching medicine' in html
+
+
+def test_unified_home_search_prescription_badge(client, test_data):
+    """Verify prescription-required medicine displays Rx badge."""
+    res = client.get('/?q=Amoxicillin')
+    assert res.status_code == 200
+    html = res.get_data(as_text=True)
+    assert 'Amoxicillin 500mg Test' in html
+    assert 'Rx Required' in html
+    assert 'View Stores' in html
+    assert f"/medicine/{test_data['med_rx_id']}" in html
+
+
+def test_unified_home_search_unknown_query(client, test_data):
+    """Verify unknown query displays an informative empty state."""
+    res = client.get('/?q=NonExistentMedicineXYZ')
+    assert res.status_code == 200
+    html = res.get_data(as_text=True)
+    assert 'No medicines found' in html
+    assert 'Clear Search' in html
+
+
+def test_unified_home_search_blank_query(client, test_data):
+    """Verify blank search query is handled gracefully and shows discovery hero."""
+    res = client.get('/?q=')
+    assert res.status_code == 200
+    html = res.get_data(as_text=True)
+    assert 'Find your medicine' in html
+
+
+def test_search_endpoint_backward_compatibility(client, test_data):
+    """Verify /search remains backward-compatible and preserves query."""
+    res = client.get('/search?q=Paracetamol')
+    assert res.status_code == 200
+    html = res.get_data(as_text=True)
+    assert 'Paracetamol 500mg Test' in html
+    assert 'View Stores' in html
+    assert f"/medicine/{test_data['med_otc_id']}" in html
+
+
+def test_medicine_detail_route_accessible(client, test_data):
+    """Verify medicine detail route continues to function for discovered items."""
+    res = client.get(f"/medicine/{test_data['med_otc_id']}")
+    assert res.status_code == 200
+    html = res.get_data(as_text=True)
+    assert 'Paracetamol 500mg Test' in html
+
+

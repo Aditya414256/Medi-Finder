@@ -78,15 +78,26 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 3. Google-like Medicine Autocomplete Engine
-  const searchInput = document.getElementById('global-search-input');
-  const suggestionsBox = document.getElementById('search-suggestions');
+  const searchInput = document.getElementById('search-input') || document.getElementById('global-search-input') || document.getElementById('home-search-input');
+  const suggestionsBox = document.getElementById('ac-dropdown') || document.getElementById('search-suggestions') || document.getElementById('home-ac-dropdown');
   const spinner = document.getElementById('search-spinner');
-  const searchForm = document.getElementById('main-search-form');
+  const searchForm = document.getElementById('search-form') || document.getElementById('main-search-form') || document.getElementById('home-search-form');
 
   if (searchInput && suggestionsBox) {
     let debounceTimer = null;
     let selectedIndex = -1;
     let currentSuggestions = [];
+
+    // Helper: Escape HTML characters to prevent XSS / HTML injection
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
 
     // Helper: Escape Regex characters
     function escapeRegExp(string) {
@@ -102,60 +113,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Render suggestions in dropdown
     function renderSuggestions(query, items) {
-      currentSuggestions = items;
+      currentSuggestions = items || [];
       selectedIndex = -1;
 
-      if (!items || items.length === 0) {
+      if (!currentSuggestions || currentSuggestions.length === 0) {
         suggestionsBox.innerHTML = `
-          <div class="autocomplete-empty">
-            <i class="fa-solid fa-circle-question text-muted" style="margin-right: 0.5rem;"></i>
+          <div class="ac-empty">
+            <i class="fa-solid fa-circle-question" style="margin-right: 0.4rem; color: #64748b;"></i>
             No medicines found matching "<strong>${escapeHtml(query)}</strong>"
           </div>
         `;
+        suggestionsBox.classList.add('open');
         suggestionsBox.style.display = 'block';
         searchInput.setAttribute('aria-expanded', 'true');
         return;
       }
 
-      const html = items.map((med, index) => {
-        const highlightedName = highlightMatch(med.name, query);
-        const highlightedGeneric = highlightMatch(med.generic_name, query);
-        const highlightedBrand = med.brand_name ? highlightMatch(med.brand_name, query) : '';
+      const html = currentSuggestions.map((med, index) => {
+        const safeName = escapeHtml(med.name);
+        const highlightedName = highlightMatch(safeName, escapeHtml(query));
+        const subtitle = [med.generic_name, med.dosage_form, med.strength]
+          .filter(Boolean)
+          .map(escapeHtml)
+          .join(' · ');
         const rxBadge = med.requires_prescription 
-          ? '<span class="badge badge-warning" style="font-size:0.68rem; padding:0.15rem 0.45rem;"><i class="fa-solid fa-prescription"></i> Rx</span>' 
-          : '<span class="badge badge-success" style="font-size:0.68rem; padding:0.15rem 0.45rem;">OTC</span>';
+          ? '<span class="ac-badge-rx">Rx</span>' 
+          : '<span class="ac-badge-otc">OTC</span>';
+        const safeUrl = encodeURI(med.url || `/medicine/${med.id}`);
 
         return `
-          <div class="autocomplete-item" role="option" id="suggestion-item-${index}" data-index="${index}" data-url="${med.url}">
-            <div class="autocomplete-icon">
+          <div class="ac-item" role="option" id="suggestion-item-${index}" data-index="${index}" data-url="${safeUrl}" tabindex="-1">
+            <div class="ac-item-icon">
               <i class="fa-solid fa-pills"></i>
             </div>
-            <div class="autocomplete-info">
-              <div class="autocomplete-name">
-                <span>${highlightedName}</span>
-                <span class="badge badge-secondary" style="font-size:0.72rem; padding:0.15rem 0.4rem;">${med.strength}</span>
-                ${rxBadge}
-              </div>
-              <div class="autocomplete-sub">
-                ${highlightedGeneric} &bull; ${med.dosage_form}
-                ${highlightedBrand ? ` &bull; <span class="text-muted">Brands: ${highlightedBrand}</span>` : ''}
-              </div>
+            <div class="ac-item-body">
+              <div class="ac-item-name">${highlightedName}</div>
+              <div class="ac-item-sub">${subtitle}</div>
             </div>
-            <div class="autocomplete-action">
-              <i class="fa-solid fa-arrow-right"></i>
-            </div>
+            ${rxBadge}
           </div>
         `;
       }).join('');
 
       suggestionsBox.innerHTML = html;
+      suggestionsBox.classList.add('open');
       suggestionsBox.style.display = 'block';
       searchInput.setAttribute('aria-expanded', 'true');
 
       // Add click listeners to items
-      const domItems = suggestionsBox.querySelectorAll('.autocomplete-item');
+      const domItems = suggestionsBox.querySelectorAll('.ac-item');
       domItems.forEach(el => {
-        el.addEventListener('click', () => {
+        el.addEventListener('mousedown', (e) => {
+          e.preventDefault();
           const url = el.getAttribute('data-url');
           if (url) window.location.href = url;
         });
@@ -168,11 +177,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setSelectedIndex(newIndex, scroll = true) {
-      const items = suggestionsBox.querySelectorAll('.autocomplete-item');
+      const items = suggestionsBox.querySelectorAll('.ac-item');
       if (items.length === 0) return;
 
       if (selectedIndex >= 0 && items[selectedIndex]) {
-        items[selectedIndex].classList.remove('active');
+        items[selectedIndex].classList.remove('focused', 'active');
         items[selectedIndex].removeAttribute('aria-selected');
       }
 
@@ -181,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (selectedIndex < 0) selectedIndex = items.length - 1;
 
       if (items[selectedIndex]) {
-        items[selectedIndex].classList.add('active');
+        items[selectedIndex].classList.add('focused', 'active');
         items[selectedIndex].setAttribute('aria-selected', 'true');
         searchInput.setAttribute('aria-activedescendant', `suggestion-item-${selectedIndex}`);
         if (scroll) {
@@ -191,17 +200,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function closeSuggestions() {
+      suggestionsBox.classList.remove('open');
       suggestionsBox.style.display = 'none';
       suggestionsBox.innerHTML = '';
       searchInput.setAttribute('aria-expanded', 'false');
       selectedIndex = -1;
       currentSuggestions = [];
       if (spinner) spinner.style.display = 'none';
-    }
-
-    function escapeHtml(str) {
-      if (!str) return '';
-      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
     // Input event with debouncing
@@ -214,6 +219,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      suggestionsBox.innerHTML = '<div class="ac-loading"><i class="fa-solid fa-spinner fa-spin"></i> Searching...</div>';
+      suggestionsBox.classList.add('open');
+      suggestionsBox.style.display = 'block';
       if (spinner) spinner.style.display = 'inline-block';
 
       debounceTimer = setTimeout(async () => {
@@ -223,12 +231,13 @@ document.addEventListener('DOMContentLoaded', () => {
           const data = await res.json();
           if (spinner) spinner.style.display = 'none';
 
-          if (data.status === 'success') {
+          if (searchInput.value.trim() === q && data.status === 'success') {
             renderSuggestions(q, data.suggestions);
           }
         } catch (err) {
           if (spinner) spinner.style.display = 'none';
-          suggestionsBox.innerHTML = '<div class="autocomplete-empty text-danger"><i class="fa-solid fa-triangle-exclamation"></i> Unable to load suggestions. Press enter to search.</div>';
+          suggestionsBox.innerHTML = '<div class="ac-empty text-danger"><i class="fa-solid fa-triangle-exclamation"></i> Unable to load suggestions. Press enter to search.</div>';
+          suggestionsBox.classList.add('open');
           suggestionsBox.style.display = 'block';
         }
       }, 200); // 200ms debouncing
@@ -236,8 +245,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Keyboard navigation handlers (ArrowUp, ArrowDown, Enter, Escape)
     searchInput.addEventListener('keydown', (e) => {
-      const items = suggestionsBox.querySelectorAll('.autocomplete-item');
-      const isVisible = suggestionsBox.style.display === 'block';
+      const items = suggestionsBox.querySelectorAll('.ac-item');
+      const isVisible = suggestionsBox.classList.contains('open') || suggestionsBox.style.display === 'block';
 
       if (e.key === 'ArrowDown') {
         if (!isVisible && searchInput.value.trim().length >= 2) {
